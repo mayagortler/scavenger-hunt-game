@@ -73,10 +73,12 @@ export function initPuzzle3(container, { onSolved }) {
       bin.addEventListener('click', () => {
         state = clickBin(state, binId);
         textBox.value = state.text;
-        if (isBinsSolved(state)) {
-          textBox.classList.add('solved');
-          onSolved?.();
-        }
+        // Recomputed on every click rather than added once: clicking on past the
+        // target text must drop the green marking again, not leave the box
+        // falsely green with the wrong text in it.
+        const solved = isBinsSolved(state);
+        textBox.classList.toggle('solved', solved);
+        continueButton.hidden = !solved;
       });
       wrapper.appendChild(bin);
     });
@@ -88,15 +90,26 @@ export function initPuzzle3(container, { onSolved }) {
     textBox.className = 'bins-text';
 
     const resetButton = document.createElement('button');
+    resetButton.className = 'puzzle-action-button';
     resetButton.textContent = 'איפוס';
     resetButton.addEventListener('click', () => {
       state = resetBins();
       textBox.value = '';
       textBox.classList.remove('solved');
+      continueButton.hidden = true;
     });
+
+    // Shown only once the box turns green, so the group sees the confirmation
+    // instead of being bounced straight back to the map on the winning click.
+    const continueButton = document.createElement('button');
+    continueButton.className = 'puzzle-continue-button';
+    continueButton.textContent = 'המשך';
+    continueButton.hidden = true;
+    continueButton.addEventListener('click', () => onSolved?.());
 
     container.appendChild(wrapper);
     container.appendChild(textBox);
     container.appendChild(resetButton);
+    container.appendChild(continueButton);
   }
 }
