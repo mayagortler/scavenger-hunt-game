@@ -125,9 +125,9 @@ export function initPuzzle2(container, { onSolved }) {
         input.addEventListener('input', () => {
           userGrid = setCellLetter(userGrid, r, c, input.value);
           input.value = userGrid[r][c];
-          if (isCrosswordSolved(userGrid, CROSSWORD_GRID)) {
-            grid.classList.add('solved');
-          }
+          const solved = isCrosswordSolved(userGrid, CROSSWORD_GRID);
+          grid.classList.toggle('solved', solved);
+          continueButton.hidden = !solved;
         });
         cellEl.appendChild(input);
         grid.appendChild(cellEl);
@@ -147,15 +147,5 @@ export function initPuzzle2(container, { onSolved }) {
     continueButton.hidden = true;
     continueButton.addEventListener('click', () => onSolved?.());
     container.appendChild(continueButton);
-
-    // Solved-state watcher so the button is revealed once, from outside the
-    // per-cell handler above.
-    const observer = new MutationObserver(() => {
-      if (grid.classList.contains('solved')) {
-        observer.disconnect();
-        continueButton.hidden = false;
-      }
-    });
-    observer.observe(grid, { attributes: true, attributeFilter: ['class'] });
   }
 }

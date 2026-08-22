@@ -97,7 +97,9 @@ export function initPuzzle4(container, { onSolved }) {
       face.className = 'video-card-face';
       if (card.flipped) {
         // 3x2 sprite crop of the assembled QR code via background-position (no build-time image cropping needed).
-        const col = card.correctSlot % GRID_COLS;
+        // The grid is inside a dir="rtl" page, so CSS Grid places column 0 on the right — mirror the
+        // sprite's column selection to match, or the reassembled QR is left-right flipped and won't scan.
+        const col = (GRID_COLS - 1) - (card.correctSlot % GRID_COLS);
         const row = Math.floor(card.correctSlot / GRID_COLS);
         face.style.backgroundImage = "url('assets/images/puzzle4-qr-code.png')";
         face.style.backgroundSize = `${GRID_COLS * 100}% ${GRID_ROWS * 100}%`;
