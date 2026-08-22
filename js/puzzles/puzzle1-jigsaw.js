@@ -1,5 +1,6 @@
 // js/puzzles/puzzle1-jigsaw.js
 import { renderSpeechBubble } from '../speechBubble.js';
+import { shuffle } from '../shuffle.js';
 
 export function checkTextAnswers({ first, second, third }) {
   const normalize = (s) => (s || '').trim().toLowerCase();
@@ -11,7 +12,13 @@ export function createJigsawPieces(size = 25) {
 }
 
 export function placePiece(pieces, pieceId, slot) {
-  return pieces.map((p) => (p.id === pieceId ? { ...p, currentSlot: slot } : p));
+  return pieces.map((p) => {
+    if (p.id === pieceId) return { ...p, currentSlot: slot };
+    // Bump whatever piece already occupied this slot back to the tray, so no
+    // two pieces can ever claim the same slot (same swap-safety as puzzle 4).
+    if (p.currentSlot === slot) return { ...p, currentSlot: null };
+    return p;
+  });
 }
 
 export function isJigsawComplete(pieces) {
@@ -33,6 +40,9 @@ const OUTRO_TEXT =
 
 const PIECE_COUNT = 25;
 const GRID_SIZE = 5; // 5x5
+// Must match .jigsaw-piece / .jigsaw-slot in css/style.css, and GRID_SIZE *
+// PIECE_SIZE_PX must equal .jigsaw-piece's background-size.
+const PIECE_SIZE_PX = 60;
 
 export function initPuzzle1(container, { onSolved }) {
   container.innerHTML = '';
@@ -59,7 +69,8 @@ export function initPuzzle1(container, { onSolved }) {
   });
 
   function renderPuzzle() {
-    let pieces = createJigsawPieces(PIECE_COUNT);
+    // Tray layout order is scrambled; each piece keeps its own correctSlot.
+    let pieces = shuffle(createJigsawPieces(PIECE_COUNT));
 
     const puzzleEl = document.createElement('div');
     puzzleEl.className = 'jigsaw-puzzle';
@@ -68,7 +79,9 @@ export function initPuzzle1(container, { onSolved }) {
     const frame = document.createElement('div');
     frame.className = 'jigsaw-frame';
     frame.style.display = 'grid';
-    frame.style.gridTemplateColumns = `repeat(${GRID_SIZE}, 60px)`;
+    frame.style.gridTemplateColumns = `repeat(${GRID_SIZE}, ${PIECE_SIZE_PX}px)`;
+
+    const slotEls = [];
     for (let slot = 0; slot < PIECE_COUNT; slot++) {
       const cell = document.createElement('div');
       cell.className = 'jigsaw-slot';
@@ -78,25 +91,56 @@ export function initPuzzle1(container, { onSolved }) {
         e.preventDefault();
         const pieceId = Number(e.dataTransfer.getData('text/plain'));
         pieces = placePiece(pieces, pieceId, slot);
+        renderAll();
       });
+      slotEls.push(cell);
       frame.appendChild(cell);
     }
 
     const tray = document.createElement('div');
     tray.className = 'jigsaw-tray';
-    for (const piece of pieces) {
+    // Dropping a piece back here takes it out of the frame again.
+    tray.addEventListener('dragover', (e) => e.preventDefault());
+    tray.addEventListener('drop', (e) => {
+      e.preventDefault();
+      const pieceId = Number(e.dataTransfer.getData('text/plain'));
+      pieces = pieces.map((p) => (p.id === pieceId ? { ...p, currentSlot: null } : p));
+      renderAll();
+    });
+
+    function buildPieceEl(piece) {
       const pieceEl = document.createElement('div');
       pieceEl.className = 'jigsaw-piece';
       pieceEl.draggable = true;
       pieceEl.style.backgroundImage = "url('assets/images/puzzle1-jigsaw-target.jpeg')";
       const row = Math.floor(piece.correctSlot / GRID_SIZE);
       const col = piece.correctSlot % GRID_SIZE;
-      pieceEl.style.backgroundPosition = `-${col * 60}px -${row * 60}px`;
+      pieceEl.style.backgroundPosition = `-${col * PIECE_SIZE_PX}px -${row * PIECE_SIZE_PX}px`;
       pieceEl.addEventListener('dragstart', (e) => {
         e.dataTransfer.setData('text/plain', String(piece.id));
       });
-      tray.appendChild(pieceEl);
+      return pieceEl;
     }
+
+    // Re-render frame and tray from `pieces` so the DOM can never disagree with
+    // the model: a piece is drawn in exactly one place (its slot if currentSlot
+    // is set, the tray otherwise). Before this the drop handler only updated the
+    // array, so the frame stayed empty and the tray stayed full no matter what
+    // the player did — the very first interaction in the game looked broken.
+    function renderAll() {
+      slotEls.forEach((slotEl, slot) => {
+        slotEl.innerHTML = '';
+        const piece = pieces.find((p) => p.currentSlot === slot);
+        if (piece) slotEl.appendChild(buildPieceEl(piece));
+      });
+
+      tray.innerHTML = '';
+      pieces
+        .filter((p) => p.currentSlot === null)
+        .forEach((piece) => tray.appendChild(buildPieceEl(piece)));
+    }
+
+    renderAll();
 
     puzzleEl.appendChild(frame);
     puzzleEl.appendChild(tray);

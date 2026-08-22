@@ -26,6 +26,24 @@ test('placePiece updates only the targeted piece, immutably', () => {
   assert.equal(next[0].currentSlot, null);
 });
 
+test('placePiece bumps the piece already in that slot back to the tray', () => {
+  let pieces = createJigsawPieces(4);
+  pieces = placePiece(pieces, 0, 1);
+  assert.equal(pieces[0].currentSlot, 1);
+
+  pieces = placePiece(pieces, 3, 1); // a different piece lands on the same slot
+  assert.equal(pieces[3].currentSlot, 1, 'newcomer takes the slot');
+  assert.equal(pieces[0].currentSlot, null, 'previous occupant returns to the tray');
+  assert.equal(pieces.filter((p) => p.currentSlot === 1).length, 1, 'no two pieces share a slot');
+});
+
+test('placePiece re-placing the same piece in the same slot keeps it there', () => {
+  let pieces = createJigsawPieces(4);
+  pieces = placePiece(pieces, 2, 2);
+  pieces = placePiece(pieces, 2, 2);
+  assert.equal(pieces[2].currentSlot, 2);
+});
+
 test('isJigsawComplete is true only when every piece is in its correct slot', () => {
   let pieces = createJigsawPieces(3);
   assert.equal(isJigsawComplete(pieces), false);
