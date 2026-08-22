@@ -69,7 +69,7 @@ export function initPuzzle4(container, { onSolved }) {
     grid.style.display = 'grid';
     grid.style.gridTemplateColumns = `repeat(${GRID_COLS}, 160px)`;
 
-    const slots = [];
+    const slotEls = [];
     for (let slot = 0; slot < 6; slot++) {
       const slotEl = document.createElement('div');
       slotEl.className = 'video-slot';
@@ -78,10 +78,9 @@ export function initPuzzle4(container, { onSolved }) {
       slotEl.addEventListener('drop', (e) => {
         e.preventDefault();
         const cardId = Number(e.dataTransfer.getData('text/plain'));
-        cards = cards.map((c) => (c.id === cardId ? { ...c, currentSlot: slot } : c));
-        renderCardInSlot(cardId, slotEl);
+        handleDrop(cardId, slot);
       });
-      slots.push(slotEl);
+      slotEls.push(slotEl);
       grid.appendChild(slotEl);
     }
 
@@ -110,16 +109,6 @@ export function initPuzzle4(container, { onSolved }) {
       return face;
     }
 
-    function renderCardInSlot(cardId, slotEl) {
-      const card = cards.find((c) => c.id === cardId);
-      slotEl.innerHTML = '';
-      slotEl.appendChild(buildCardEl(card));
-      if (isVideoOrderSolved(cards)) {
-        grid.classList.add('solved');
-        onSolved?.();
-      }
-    }
-
     function buildCardEl(card) {
       const cardEl = document.createElement('div');
       cardEl.className = 'video-card';
@@ -129,32 +118,53 @@ export function initPuzzle4(container, { onSolved }) {
         e.dataTransfer.setData('text/plain', String(card.id));
       });
       cardEl.addEventListener('click', (e) => {
-        if (e.detail === 0) return; // ignore synthetic clicks from drag
+        // e.detail is 0 for programmatic/synthetic clicks (e.g. el.click() calls in tests);
+        // real pointer clicks always report detail >= 1. This just keeps test-triggered
+        // .click() calls from opening a new tab during automated checks.
+        if (e.detail === 0) return;
         window.open(card.url, '_blank', 'noopener');
       });
       return cardEl;
     }
 
-    for (const card of cards) {
-      tray.appendChild(buildCardEl(card));
+    // Re-render both the tray and the slots from `cards` state so the DOM can never
+    // disagree with the model: a card is drawn in exactly one place (its slot if
+    // `currentSlot` is set, the tray otherwise), including after drops, bumps, and flips.
+    function renderAll() {
+      slotEls.forEach((slotEl, slot) => {
+        slotEl.innerHTML = '';
+        const card = cards.find((c) => c.currentSlot === slot);
+        if (card) slotEl.appendChild(buildCardEl(card));
+      });
+
+      tray.innerHTML = '';
+      cards
+        .filter((c) => c.currentSlot === null)
+        .forEach((card) => tray.appendChild(buildCardEl(card)));
+
+      if (isVideoOrderSolved(cards)) {
+        grid.classList.add('solved');
+        onSolved?.();
+      }
     }
+
+    function handleDrop(cardId, slot) {
+      cards = cards.map((c) => {
+        if (c.id === cardId) return { ...c, currentSlot: slot };
+        // Bump whatever card previously occupied this slot back to the tray.
+        if (c.currentSlot === slot) return { ...c, currentSlot: null };
+        return c;
+      });
+      renderAll();
+    }
+
+    renderAll();
 
     const flipButton = document.createElement('button');
     flipButton.textContent = 'הפוך';
     flipButton.addEventListener('click', () => {
       cards = cards.map((c) => ({ ...c, flipped: !c.flipped }));
-      slots.forEach((slotEl) => {
-        const slot = Number(slotEl.dataset.slot);
-        const card = cards.find((c) => c.currentSlot === slot);
-        if (card) {
-          slotEl.innerHTML = '';
-          slotEl.appendChild(buildCardEl(card));
-        }
-      });
-      if (isVideoOrderSolved(cards)) {
-        grid.classList.add('solved');
-        onSolved?.();
-      }
+      renderAll();
     });
 
     container.appendChild(grid);
