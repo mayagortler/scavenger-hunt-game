@@ -2,6 +2,64 @@
 import { STATIONS, INITIAL_MAP_VIEW } from './stations.js';
 import { isStationVisible } from './geo.js';
 
+// Free, no-API-key place search via OpenStreetMap's Nominatim — consistent with
+// the map tiles themselves. Exported (pure fetch wrapper) so it's easy to test
+// in isolation from the DOM control that calls it.
+export async function searchPlace(query) {
+  const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(query)}`;
+  const response = await fetch(url);
+  const results = await response.json();
+  return results[0] || null;
+}
+
+function addSearchControl(map) {
+  const control = L.control({ position: 'topright' });
+
+  control.onAdd = () => {
+    const container = L.DomUtil.create('div', 'map-search-control');
+    container.innerHTML = `
+      <input type="text" class="map-search-input" placeholder="חיפוש מקום..." />
+      <button type="button" class="map-search-button">חפש</button>
+      <span class="map-search-status"></span>
+    `;
+
+    // A player typing/clicking inside this control must not pan/zoom the map underneath it.
+    L.DomEvent.disableClickPropagation(container);
+    L.DomEvent.disableScrollPropagation(container);
+
+    const input = container.querySelector('.map-search-input');
+    const button = container.querySelector('.map-search-button');
+    const status = container.querySelector('.map-search-status');
+
+    async function runSearch() {
+      const query = input.value.trim();
+      if (!query) return;
+      status.textContent = 'מחפש...';
+      try {
+        const result = await searchPlace(query);
+        if (!result) {
+          status.textContent = 'לא נמצא';
+          return;
+        }
+        const [south, north, west, east] = result.boundingbox.map(Number);
+        map.fitBounds([[south, west], [north, east]]);
+        status.textContent = '';
+      } catch {
+        status.textContent = 'שגיאת חיפוש';
+      }
+    }
+
+    button.addEventListener('click', runSearch);
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') runSearch();
+    });
+
+    return container;
+  };
+
+  control.addTo(map);
+}
+
 export function initMap(container, {
   initialView = INITIAL_MAP_VIEW,
   onPuzzleStationClick,
@@ -16,6 +74,8 @@ export function initMap(container, {
     attribution: '&copy; OpenStreetMap contributors',
     maxZoom: 19,
   }).addTo(map);
+
+  addSearchControl(map);
 
   const markers = new Map();
 
