@@ -30,6 +30,11 @@ const screens = {
   final: document.getElementById('screen-final'),
 };
 
+// Fixed order for the dev toolbar's back/forward arrows — not the actual
+// game flow (puzzle 6's four letter-stations aren't single screens), just a
+// convenient linear tour of every screen for manual testing during dev.
+const SCREEN_ORDER = ['map', 'puzzle1', 'puzzle2', 'puzzle3', 'puzzle4', 'puzzle5', 'final'];
+
 let currentScreenId = null;
 
 function persist() {
@@ -184,6 +189,45 @@ mapCloseButton.addEventListener('click', () => {
 });
 screens.map.appendChild(mapCloseButton);
 
+// --- Dev-only screen navigator (hidden by default; Ctrl+Shift+D toggles it) ---
+// Lets whoever is building/testing the game jump directly to any screen and
+// solve the current puzzle with a click, instead of navigating the map and
+// solving each puzzle for real on every test run. Never meant to be seen
+// during the live event — stays hidden unless explicitly toggled.
+function devGoToScreen(screenId) {
+  if (screenId === 'final') {
+    // 'final' has no puzzleInitializer and is normally only ever populated by
+    // the real onLetterStationClick flow — render it directly here so it can
+    // be previewed on demand regardless of actual progress.
+    renderFinalScreen(screens.final, {
+      finalLetters: getFinalLetters(state) || '(אין אותיות עדיין)',
+      onFinish: showThanks,
+    });
+  }
+  showScreen(screenId);
+}
+
+function devStep(delta) {
+  const index = SCREEN_ORDER.indexOf(currentScreenId);
+  const nextIndex = Math.min(Math.max(index + delta, 0), SCREEN_ORDER.length - 1);
+  devGoToScreen(SCREEN_ORDER[nextIndex]);
+}
+
+const devToolbar = document.createElement('div');
+devToolbar.className = 'dev-toolbar';
+devToolbar.hidden = true;
+devToolbar.innerHTML = `
+  <button type="button" data-dev="prev" title="מסך קודם">◀</button>
+  <button type="button" data-dev="solve" title="פתור את החידה הנוכחית">פתור</button>
+  <button type="button" data-dev="next" title="מסך הבא">▶</button>
+`;
+devToolbar.querySelector('[data-dev="prev"]').addEventListener('click', () => devStep(-1));
+devToolbar.querySelector('[data-dev="next"]').addEventListener('click', () => devStep(1));
+devToolbar.querySelector('[data-dev="solve"]').addEventListener('click', () => {
+  if (puzzleInitializers[currentScreenId]) completePuzzle(currentScreenId);
+});
+document.body.appendChild(devToolbar);
+
 // --- Hidden facilitator shortcuts (documented in README.md) ---
 
 // event.code is the layout-independent physical key, which is what makes these
@@ -209,6 +253,9 @@ window.addEventListener('keydown', (event) => {
     if (puzzleInitializers[currentScreenId]) {
       completePuzzle(currentScreenId);
     }
+  } else if (isShortcutKey(event, 'KeyD', 'd')) {
+    event.preventDefault();
+    devToolbar.hidden = !devToolbar.hidden;
   }
 });
 

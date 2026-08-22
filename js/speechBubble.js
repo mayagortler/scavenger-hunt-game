@@ -4,10 +4,16 @@ import { visibleText, isTypingComplete } from './typewriter.js';
 export function renderSpeechBubble(container, { characterImage, characterName, text, buttonLabel, onAdvance }) {
   container.innerHTML = '';
 
+  const wrapper = document.createElement('div');
+  wrapper.className = 'speech-fullscreen';
+
   const img = document.createElement('img');
   img.src = characterImage;
   img.alt = characterName;
-  img.className = 'speech-character';
+  img.className = 'speech-character-fullscreen';
+
+  const panel = document.createElement('div');
+  panel.className = 'speech-panel';
 
   const bubble = document.createElement('div');
   bubble.className = 'speech-bubble';
@@ -19,9 +25,11 @@ export function renderSpeechBubble(container, { characterImage, characterName, t
   button.textContent = buttonLabel;
   button.disabled = true;
 
-  container.appendChild(img);
-  container.appendChild(bubble);
-  container.appendChild(button);
+  panel.appendChild(bubble);
+  panel.appendChild(button);
+  wrapper.appendChild(img);
+  wrapper.appendChild(panel);
+  container.appendChild(wrapper);
 
   const start = performance.now();
   let frameId;

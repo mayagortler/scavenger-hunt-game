@@ -39,7 +39,7 @@ export function initPuzzle3(container, { onSolved }) {
   container.appendChild(dialogueEl);
 
   renderSpeechBubble(dialogueEl, {
-    characterImage: 'assets/images/char-uzi-hadrozi.png',
+    characterImage: 'assets/images/char-uzi-hadrozi.jpeg',
     characterName: 'עוזי הדרוזי',
     text: INTRO_TEXT,
     buttonLabel: '→',

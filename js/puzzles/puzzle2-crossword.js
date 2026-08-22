@@ -67,7 +67,7 @@ export function initPuzzle2(container, { onSolved }) {
   container.appendChild(dialogueEl);
 
   renderSpeechBubble(dialogueEl, {
-    characterImage: 'assets/images/char-avi-boaz.png',
+    characterImage: 'assets/images/char-avi-boaz.jpeg',
     characterName: 'אבי בועז',
     text: INTRO_TEXT,
     buttonLabel: '→',

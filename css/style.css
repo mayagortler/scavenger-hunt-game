@@ -22,27 +22,67 @@ body { margin: 0; font-family: system-ui, sans-serif; direction: rtl; }
   cursor: pointer;
 }
 
+/* Dev-only screen navigator — hidden by default, toggled with Ctrl+Shift+D.
+   Never meant to be visible during the live event; the red tint is
+   deliberate so it reads as "developer tool" if it's ever seen by accident. */
+.dev-toolbar {
+  position: fixed;
+  bottom: 16px;
+  right: 16px;
+  z-index: 2000;
+  display: flex;
+  gap: 6px;
+  padding: 8px;
+  background: #b71c1c;
+  border-radius: 8px;
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.4);
+}
+.dev-toolbar[hidden] { display: none; }
+.dev-toolbar button {
+  font-size: 16px;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  background: #fff;
+  color: #222;
+  cursor: pointer;
+}
+
+/* Character speech screen: the photo fills the screen, the bubble sits in a
+   side panel next to it — position:fixed so it covers the viewport
+   regardless of the (unsized) dialogue wrapper div each puzzle renders it
+   into, rather than depending on a height:100% chain through that parent. */
+.speech-fullscreen {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  z-index: 500;
+}
+.speech-character-fullscreen {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 100%;
+  object-fit: cover;
+}
+.speech-panel {
+  flex: 0 0 380px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 16px;
+  padding: 24px;
+  background: #fff8e1;
+  overflow-y: auto;
+}
 .speech-bubble {
-  max-width: 600px;
-  margin: 24px auto;
   padding: 20px;
   border-radius: 16px;
-  background: #fff8e1;
+  background: #fff;
   border: 2px solid #d8b34a;
   font-size: 20px;
   white-space: pre-line;
 }
-.speech-character {
-  display: block;
-  width: 140px;
-  height: 140px;
-  object-fit: cover;
-  border-radius: 50%;
-  margin: 12px auto;
-}
 .speech-advance-button {
-  display: block;
-  margin: 16px auto 0;
   padding: 10px 24px;
   font-size: 18px;
   border-radius: 8px;
@@ -50,6 +90,7 @@ body { margin: 0; font-family: system-ui, sans-serif; direction: rtl; }
   background: #d8b34a;
   color: #222;
   cursor: pointer;
+  align-self: center;
 }
 
 #screen-map { padding: 0; }
