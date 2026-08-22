@@ -30,14 +30,40 @@ const screens = {
   final: document.getElementById('screen-final'),
 };
 
+let currentScreenId = null;
+
 function persist() {
   saveState(state, storage);
 }
 
+// Puzzles are initialised lazily, the first time their screen is actually
+// shown. Initialising them all up front ran every speech bubble's typewriter
+// animation to completion while its screen was still hidden, so the group never
+// saw a single character type out — and one throwing init aborted the whole
+// module, which took the map down with it and left a blank page.
+const initializedPuzzles = new Set();
+
+function ensureInitialized(screenId) {
+  const init = puzzleInitializers[screenId];
+  if (!init || initializedPuzzles.has(screenId)) return;
+  // Marked before running so a throwing init is not retried on every visit.
+  initializedPuzzles.add(screenId);
+  try {
+    init(screens[screenId]);
+  } catch (error) {
+    // A broken puzzle must not take out the map or the other puzzles.
+    console.error(`Failed to initialise ${screenId}`, error);
+  }
+  // Appended even if init threw, so the group can always get back to the map.
+  addMapOpenButton(screens[screenId]);
+}
+
 function showScreen(screenId) {
+  ensureInitialized(screenId);
   for (const [id, el] of Object.entries(screens)) {
     el.hidden = id !== screenId;
   }
+  currentScreenId = screenId;
   if (screenId !== 'map') {
     state = setLastOpenScreen(state, screenId);
     persist();
@@ -65,36 +91,41 @@ function onPuzzleSolved(puzzleId) {
   persist();
 }
 
+// The single "this puzzle is done" path, shared by every puzzle's solved
+// callback and by the facilitator's skip shortcut.
+function completePuzzle(puzzleId) {
+  onPuzzleSolved(puzzleId);
+  showScreen('map');
+}
+
+function showThanks() {
+  // window.close() is blocked for tabs the script didn't open, so the finale
+  // button used to do nothing at all. Give the group a real closing beat.
+  screens.final.innerHTML = '';
+  const thanks = document.createElement('div');
+  thanks.className = 'final-thanks';
+  thanks.textContent = 'תודה ששיחקתם!';
+  screens.final.appendChild(thanks);
+}
+
 function renderFinalScreenIfReady() {
   if (allFinalStationsDiscovered(state.letterDiscoveries)) {
-    renderFinalScreen(screens.final, { finalLetters: getFinalLetters(state), onFinish: () => window.close() });
+    renderFinalScreen(screens.final, { finalLetters: getFinalLetters(state), onFinish: showThanks });
     return true;
   }
   return false;
 }
 
-// --- Puzzle screens ---
-initPuzzle1(screens.puzzle1, { onSolved: () => { onPuzzleSolved('puzzle1'); showScreen('map'); } });
-addMapOpenButton(screens.puzzle1);
+// --- Puzzle screens (definitions only — invoked by ensureInitialized) ---
+const puzzleInitializers = {
+  puzzle1: (el) => initPuzzle1(el, { onSolved: () => completePuzzle('puzzle1') }),
+  puzzle2: (el) => initPuzzle2(el, { onSolved: () => completePuzzle('puzzle2') }),
+  puzzle3: (el) => initPuzzle3(el, { onSolved: () => completePuzzle('puzzle3') }),
+  puzzle4: (el) => initPuzzle4(el, { onSolved: () => completePuzzle('puzzle4') }),
+  puzzle5: (el) => initPuzzle5(el, { onContinue: () => completePuzzle('puzzle5') }),
+};
 
-initPuzzle2(screens.puzzle2, { onSolved: () => { onPuzzleSolved('puzzle2'); showScreen('map'); } });
-addMapOpenButton(screens.puzzle2);
-
-initPuzzle3(screens.puzzle3, { onSolved: () => { onPuzzleSolved('puzzle3'); showScreen('map'); } });
-addMapOpenButton(screens.puzzle3);
-
-initPuzzle4(screens.puzzle4, { onSolved: () => { onPuzzleSolved('puzzle4'); showScreen('map'); } });
-addMapOpenButton(screens.puzzle4);
-
-initPuzzle5(screens.puzzle5, {
-  onContinue: () => {
-    onPuzzleSolved('puzzle5');
-    showScreen('map');
-  },
-});
-addMapOpenButton(screens.puzzle5);
-
-// --- Map screen ---
+// --- Map screen (created first, so no puzzle failure can prevent it) ---
 const puzzleScreenByPuzzleId = {
   puzzle1: 'puzzle1',
   puzzle2: 'puzzle2',
@@ -152,6 +183,34 @@ mapCloseButton.addEventListener('click', () => {
   showScreen(state.lastOpenScreen || 'map');
 });
 screens.map.appendChild(mapCloseButton);
+
+// --- Hidden facilitator shortcuts (documented in README.md) ---
+
+// event.code is the layout-independent physical key, which is what makes these
+// shortcuts still work with the keyboard on a Hebrew layout (where event.key
+// would be 'ר'/'ש'). event.key is kept as a fallback for the environments that
+// don't populate event.code at all.
+function isShortcutKey(event, code, letter) {
+  return event.code === code || (event.key || '').toLowerCase() === letter;
+}
+
+window.addEventListener('keydown', (event) => {
+  if (!event.ctrlKey || !event.shiftKey) return;
+  if (isShortcutKey(event, 'KeyR', 'r')) {
+    event.preventDefault();
+    if (window.confirm('לאפס את המשחק? כל ההתקדמות תימחק.')) {
+      storage.clear();
+      window.location.reload();
+    }
+  } else if (isShortcutKey(event, 'KeyS', 's')) {
+    event.preventDefault();
+    // Escape hatch: mark the puzzle currently on screen as solved. Does
+    // nothing on the map or the final screen.
+    if (puzzleInitializers[currentScreenId]) {
+      completePuzzle(currentScreenId);
+    }
+  }
+});
 
 // --- Initial screen on load ---
 if (state.lastOpenScreen === 'final') {
