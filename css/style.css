@@ -84,6 +84,12 @@ button { font-family: inherit; }
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }
 }
+@keyframes shake {
+  10%, 90% { transform: translateX(-1px); }
+  20%, 80% { transform: translateX(2px); }
+  30%, 50%, 70% { transform: translateX(-4px); }
+  40%, 60% { transform: translateX(4px); }
+}
 
 .screen {
   width: 100vw;
@@ -366,6 +372,17 @@ button:focus-visible { outline: 3px solid var(--color-gold-light); outline-offse
 }
 .jigsaw-answers input:focus { outline: none; border-color: var(--color-gold); box-shadow: 0 0 0 3px rgba(216, 179, 74, 0.25); }
 .jigsaw-answers.solved { outline: 3px solid var(--color-success); border-radius: var(--radius-sm); animation: pulseGlow 1200ms ease-out; }
+.jigsaw-answers.wrong { animation: shake 480ms var(--ease-standard); }
+.jigsaw-answers.wrong input { border-color: var(--color-danger); }
+.answer-feedback {
+  flex-basis: 100%;
+  margin: 0;
+  min-height: 20px;
+  color: var(--color-danger);
+  font-weight: 600;
+  font-size: 14px;
+  text-align: center;
+}
 
 /* Puzzle 2: crossword */
 .crossword-wrapper {

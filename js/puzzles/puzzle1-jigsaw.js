@@ -155,6 +155,13 @@ export function initPuzzle1(container, { onSolved }) {
       answersEl.appendChild(input);
       return input;
     });
+    const feedbackEl = document.createElement('p');
+    feedbackEl.className = 'answer-feedback';
+    inputs.forEach((input) => input.addEventListener('input', () => {
+      feedbackEl.textContent = '';
+      answersEl.classList.remove('wrong');
+    }));
+
     const checkButton = document.createElement('button');
     checkButton.textContent = 'בדוק';
     checkButton.addEventListener('click', () => {
@@ -171,9 +178,18 @@ export function initPuzzle1(container, { onSolved }) {
           onAdvance: () => onSolved?.(),
         });
         container.appendChild(dialogueEl);
+      } else {
+        feedbackEl.textContent = 'לא נכון, נסו שוב';
+        // Restart the shake animation even on repeated wrong guesses: removing
+        // the class, forcing a reflow, then re-adding is what makes a CSS
+        // animation replay — just re-adding an already-present class is a no-op.
+        answersEl.classList.remove('wrong');
+        void answersEl.offsetWidth;
+        answersEl.classList.add('wrong');
       }
     });
     answersEl.appendChild(checkButton);
+    answersEl.appendChild(feedbackEl);
     container.appendChild(answersEl);
   }
 }
