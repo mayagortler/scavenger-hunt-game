@@ -25,13 +25,24 @@ export const CLUES = [
   { number: 8, text: 'מי עזב את הקבוצה בעקבות ההודעות האלה?', image: 'assets/images/puzzle2-clue-8.jpeg' },
 ];
 
+// The source doc's table writes several word-ending letters in their non-final
+// form (e.g. (0,5) is 'מ'), but a Hebrew typist naturally types the final form
+// ('ם') at the end of a word. Since solving requires an exact match on all ~52
+// cells with no per-cell feedback, one such cell would strand the group with no
+// way to find it. Both sides of the comparison are normalized to the base form.
+export const FINAL_LETTER_FORMS = { 'ך': 'כ', 'ם': 'מ', 'ן': 'נ', 'ף': 'פ', 'ץ': 'צ' };
+
+export function normalizeHebrewLetter(ch) {
+  return FINAL_LETTER_FORMS[ch] || ch;
+}
+
 export function createEmptyUserGrid(grid) {
   return grid.map((row) => row.map((cell) => (cell ? '' : null)));
 }
 
 export function setCellLetter(userGrid, row, col, letter) {
   const next = userGrid.map((r) => [...r]);
-  next[row][col] = (letter || '').slice(-1);
+  next[row][col] = normalizeHebrewLetter((letter || '').slice(-1));
   return next;
 }
 
@@ -40,7 +51,8 @@ export function isCrosswordSolved(userGrid, solutionGrid) {
     for (let c = 0; c < solutionGrid[r].length; c++) {
       const solutionCell = solutionGrid[r][c];
       if (solutionCell === null) continue;
-      if ((userGrid[r][c] || '').trim() !== solutionCell.letter) return false;
+      const typed = normalizeHebrewLetter((userGrid[r][c] || '').trim());
+      if (typed !== normalizeHebrewLetter(solutionCell.letter)) return false;
     }
   }
   return true;
@@ -126,11 +138,22 @@ export function initPuzzle2(container, { onSolved }) {
     wrapper.appendChild(grid);
     container.appendChild(wrapper);
 
-    // Solved-state watcher so onSolved fires once, from outside the per-cell handler above.
+    // Shown only once the grid is solved. The group needs a beat to see the
+    // green confirmation before leaving, so moving on is an explicit click
+    // rather than something that fires on the last keystroke.
+    const continueButton = document.createElement('button');
+    continueButton.className = 'puzzle-continue-button';
+    continueButton.textContent = 'המשך';
+    continueButton.hidden = true;
+    continueButton.addEventListener('click', () => onSolved?.());
+    container.appendChild(continueButton);
+
+    // Solved-state watcher so the button is revealed once, from outside the
+    // per-cell handler above.
     const observer = new MutationObserver(() => {
       if (grid.classList.contains('solved')) {
         observer.disconnect();
-        onSolved?.();
+        continueButton.hidden = false;
       }
     });
     observer.observe(grid, { attributes: true, attributeFilter: ['class'] });
