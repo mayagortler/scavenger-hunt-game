@@ -145,7 +145,11 @@ mapCloseButton.addEventListener('click', () => {
   // Returns to whichever puzzle screen was open before the map was opened
   // (showScreen only updates lastOpenScreen for non-map screens, so this
   // still holds the last puzzle screen even while the map is showing).
-  showScreen(state.lastOpenScreen);
+  // Falls back to 'map' (same pattern as the initial-load call below) for
+  // the case where the map is closed before any puzzle screen was ever
+  // opened, i.e. state.lastOpenScreen is still falsy — otherwise
+  // showScreen(undefined) hides every screen and blanks the page.
+  showScreen(state.lastOpenScreen || 'map');
 });
 screens.map.appendChild(mapCloseButton);
 
