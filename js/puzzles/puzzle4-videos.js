@@ -100,7 +100,7 @@ export function initPuzzle4(container, { onSolved }) {
     characterImage: 'assets/images/char-uri-tabibi.jpeg',
     characterName: 'אורי טביבי',
     text: INTRO_TEXT,
-    buttonLabel: '→',
+    buttonLabel: '←',
     onAdvance: () => {
       dialogueEl.remove();
       renderPuzzle();
@@ -110,6 +110,7 @@ export function initPuzzle4(container, { onSolved }) {
   function renderPuzzle() {
     // Tray layout order is scrambled; each card keeps its own correctSlot.
     let cards = shuffle(createVideoCards());
+    let advanced = false;
 
     const grid = document.createElement('div');
     grid.className = 'video-grid';
@@ -206,7 +207,13 @@ export function initPuzzle4(container, { onSolved }) {
       // which must drop the green frame and bring the gutters/borders back.
       const solved = isVideoOrderSolved(cards);
       grid.classList.toggle('solved', solved);
-      continueButton.hidden = !solved;
+      if (solved && !advanced) {
+        advanced = true;
+        // A short pause instead of navigating on the very click that solves it,
+        // so the group has a moment to actually see and scan the assembled QR
+        // code before the screen moves on to the map.
+        setTimeout(() => onSolved?.(), 1800);
+      }
     }
 
     function handleDrop(cardId, slot) {
@@ -218,15 +225,6 @@ export function initPuzzle4(container, { onSolved }) {
       });
       renderAll();
     }
-
-    // Shown only once solved: the group needs to actually look at the assembled
-    // QR (and scan it) before the app navigates away, so leaving the screen is
-    // an explicit click rather than something that happens on the last drop.
-    const continueButton = document.createElement('button');
-    continueButton.className = 'puzzle-continue-button';
-    continueButton.textContent = 'המשך';
-    continueButton.hidden = true;
-    continueButton.addEventListener('click', () => onSolved?.());
 
     renderAll();
 
@@ -241,6 +239,5 @@ export function initPuzzle4(container, { onSolved }) {
     container.appendChild(grid);
     container.appendChild(tray);
     container.appendChild(flipButton);
-    container.appendChild(continueButton);
   }
 }

@@ -7,6 +7,9 @@ import {
   setCellLetter,
   isCrosswordSolved,
   normalizeHebrewLetter,
+  getClueNumberForRow,
+  isFinalColumnSolved,
+  FINAL_COLUMN,
 } from './puzzle2-crossword.js';
 
 test('createEmptyUserGrid mirrors solution shape with blanks for playable cells', () => {
@@ -90,4 +93,27 @@ test('a grid filled using Hebrew final forms still solves', () => {
     }
   }
   assert.equal(isCrosswordSolved(userGrid, CROSSWORD_GRID), true);
+});
+
+test('getClueNumberForRow returns the single clue number owning every cell in that row', () => {
+  assert.equal(getClueNumberForRow(CROSSWORD_GRID[0]), 1);
+  assert.equal(getClueNumberForRow(CROSSWORD_GRID[1]), 2);
+  assert.equal(getClueNumberForRow(CROSSWORD_GRID[7]), 8);
+});
+
+test('FINAL_COLUMN reads "בן גוריון" top-to-bottom in the solution grid', () => {
+  const letters = CROSSWORD_GRID.map((row) => row[FINAL_COLUMN].letter).join('');
+  assert.equal(letters, 'בנגוריונ');
+});
+
+test('isFinalColumnSolved only checks column 8, independent of the rest of the grid', () => {
+  let userGrid = createEmptyUserGrid(CROSSWORD_GRID);
+  assert.equal(isFinalColumnSolved(userGrid, CROSSWORD_GRID), false);
+
+  for (let r = 0; r < CROSSWORD_GRID.length; r++) {
+    userGrid = setCellLetter(userGrid, r, FINAL_COLUMN, CROSSWORD_GRID[r][FINAL_COLUMN].letter);
+  }
+  // Every other cell is still blank, yet the final column alone reports solved.
+  assert.equal(isFinalColumnSolved(userGrid, CROSSWORD_GRID), true);
+  assert.equal(isCrosswordSolved(userGrid, CROSSWORD_GRID), false);
 });

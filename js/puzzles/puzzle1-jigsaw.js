@@ -122,11 +122,40 @@ export function initPuzzle1(container, { onSolved }) {
       return pieceEl;
     }
 
+    // Answers are only relevant once the picture itself is assembled — showing
+    // them from the start invites guessing the code without solving the jigsaw.
+    const answersEl = document.createElement('div');
+    answersEl.className = 'jigsaw-answers';
+    answersEl.hidden = true;
+
+    const answersRow = document.createElement('div');
+    answersRow.className = 'jigsaw-answers-row';
+    const inputs = [0, 1, 2].map(() => {
+      const item = document.createElement('div');
+      item.className = 'jigsaw-answer-item';
+      const hash = document.createElement('span');
+      hash.className = 'jigsaw-hash';
+      hash.textContent = '#';
+      const input = document.createElement('input');
+      input.type = 'text';
+      item.appendChild(hash);
+      item.appendChild(input);
+      answersRow.appendChild(item);
+      return input;
+    });
+    answersEl.appendChild(answersRow);
+
+    const feedbackEl = document.createElement('p');
+    feedbackEl.className = 'answer-feedback';
+    inputs.forEach((input) => input.addEventListener('input', () => {
+      feedbackEl.textContent = '';
+      answersEl.classList.remove('wrong');
+    }));
+
     // Re-render frame and tray from `pieces` so the DOM can never disagree with
     // the model: a piece is drawn in exactly one place (its slot if currentSlot
-    // is set, the tray otherwise). Before this the drop handler only updated the
-    // array, so the frame stayed empty and the tray stayed full no matter what
-    // the player did — the very first interaction in the game looked broken.
+    // is set, the tray otherwise). Also re-evaluates whether the picture is
+    // fully assembled, to reveal the answers section only once it is.
     function renderAll() {
       slotEls.forEach((slotEl, slot) => {
         slotEl.innerHTML = '';
@@ -138,29 +167,14 @@ export function initPuzzle1(container, { onSolved }) {
       pieces
         .filter((p) => p.currentSlot === null)
         .forEach((piece) => tray.appendChild(buildPieceEl(piece)));
+
+      answersEl.hidden = !isJigsawComplete(pieces);
     }
 
     renderAll();
 
     puzzleEl.appendChild(frame);
     puzzleEl.appendChild(tray);
-
-    const answersEl = document.createElement('div');
-    answersEl.className = 'jigsaw-answers';
-    const labels = ['#', '#', '#'];
-    const inputs = labels.map(() => {
-      const input = document.createElement('input');
-      input.type = 'text';
-      answersEl.appendChild(document.createTextNode('# '));
-      answersEl.appendChild(input);
-      return input;
-    });
-    const feedbackEl = document.createElement('p');
-    feedbackEl.className = 'answer-feedback';
-    inputs.forEach((input) => input.addEventListener('input', () => {
-      feedbackEl.textContent = '';
-      answersEl.classList.remove('wrong');
-    }));
 
     const checkButton = document.createElement('button');
     checkButton.textContent = 'בדוק';

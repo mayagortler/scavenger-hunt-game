@@ -42,7 +42,7 @@ export function initPuzzle3(container, { onSolved }) {
     characterImage: 'assets/images/char-uzi-hadrozi.jpeg',
     characterName: 'עוזי הדרוזי',
     text: INTRO_TEXT,
-    buttonLabel: '→',
+    buttonLabel: '←',
     onAdvance: () => {
       dialogueEl.remove();
       renderPuzzle();
@@ -51,6 +51,7 @@ export function initPuzzle3(container, { onSolved }) {
 
   function renderPuzzle() {
     let state = createBinState();
+    let advanced = false;
 
     const wrapper = document.createElement('div');
     wrapper.className = 'bins-wrapper';
@@ -61,13 +62,24 @@ export function initPuzzle3(container, { onSolved }) {
     bg.className = 'bins-background';
     wrapper.appendChild(bg);
 
-    // Free layout: spread 11 bins evenly along the bottom of the background image.
+    // Free layout: two rows of bins along the bottom of the background image
+    // (6 on top, 5 below) instead of one cramped row of 11.
+    const TOP_ROW_COUNT = 6;
     BIN_IDS.forEach((binId, index) => {
+      const inTopRow = index < TOP_ROW_COUNT;
+      const rowIndex = inTopRow ? index : index - TOP_ROW_COUNT;
+      const rowCount = inTopRow ? TOP_ROW_COUNT : BIN_IDS.length - TOP_ROW_COUNT;
+
       const bin = document.createElement('button');
       bin.className = 'bin';
       bin.style.position = 'absolute';
-      bin.style.bottom = '8%';
-      bin.style.left = `${5 + index * 8}%`;
+      bin.style.bottom = inTopRow ? '34%' : '6%';
+      // Offset by half the bin's own width (32px = half of the 64px .bin size)
+      // so the row's outer bins are centered on their mark instead of
+      // overflowing the wrapper — done via calc(), not an inline transform,
+      // so the hover/active transforms in css/style.css still apply (an
+      // inline style.transform would silently out-rank them).
+      bin.style.left = `calc(${8 + rowIndex * (84 / (rowCount - 1))}% - 32px)`;
       bin.style.backgroundImage = "url('assets/images/puzzle3-bin-icon.png')";
       bin.textContent = binId === SLASH_ID ? '/' : String(binId);
       bin.addEventListener('click', () => {
@@ -78,7 +90,10 @@ export function initPuzzle3(container, { onSolved }) {
         // falsely green with the wrong text in it.
         const solved = isBinsSolved(state);
         textBox.classList.toggle('solved', solved);
-        continueButton.hidden = !solved;
+        if (solved && !advanced) {
+          advanced = true;
+          onSolved?.();
+        }
       });
       wrapper.appendChild(bin);
     });
@@ -96,20 +111,10 @@ export function initPuzzle3(container, { onSolved }) {
       state = resetBins();
       textBox.value = '';
       textBox.classList.remove('solved');
-      continueButton.hidden = true;
     });
-
-    // Shown only once the box turns green, so the group sees the confirmation
-    // instead of being bounced straight back to the map on the winning click.
-    const continueButton = document.createElement('button');
-    continueButton.className = 'puzzle-continue-button';
-    continueButton.textContent = 'המשך';
-    continueButton.hidden = true;
-    continueButton.addEventListener('click', () => onSolved?.());
 
     container.appendChild(wrapper);
     container.appendChild(textBox);
     container.appendChild(resetButton);
-    container.appendChild(continueButton);
   }
 }

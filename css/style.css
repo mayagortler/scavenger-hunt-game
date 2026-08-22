@@ -1,52 +1,57 @@
-/* ===== Design tokens ===== */
+/* ===== Design tokens =====
+   Direction: a field case-file / investigation-dossier look — warm paper,
+   flat ink borders, a single stamp-red accent, hard offset "paper stack"
+   shadows instead of soft glow/blur. Deliberately not the dark-gradient +
+   gold-glow "fantasy game" look, which is the generic AI default for an
+   "adventure/treasure hunt" brief the same way purple gradients are the
+   generic default for a SaaS product. */
 :root {
-  --font-display: 'Rubik', system-ui, sans-serif;
+  --font-display: 'Suez One', 'Rubik', serif;
+  --font-body: 'Rubik', system-ui, sans-serif;
 
-  --color-bg-deep: #1a1108;
-  --color-bg-deep-2: #2e1e10;
-  --color-surface: #fff8e6;
-  --color-surface-2: #fffdf7;
-  --color-ink: #2a1d10;
-  --color-ink-soft: #6b5640;
+  --color-paper: #ede1c8;
+  --color-card: #f8f1e0;
+  --color-card-2: #fffaf0;
+  --color-ink: #241d13;
+  --color-ink-soft: #5c5140;
 
-  --color-gold: #d8b34a;
-  --color-gold-light: #f0cd6e;
-  --color-gold-dark: #a67e2a;
-  --color-success: #4caf50;
-  --color-success-dark: #2e7d32;
-  --color-danger: #b71c1c;
+  --color-accent: #963c2f;
+  --color-accent-dark: #742d22;
+  --color-success: #3f6b3a;
+  --color-success-dark: #2c4d28;
+  --color-danger: #963c2f;
 
-  --radius-sm: 8px;
-  --radius-md: 14px;
-  --radius-lg: 24px;
-  --radius-pill: 999px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
 
-  --shadow-sm: 0 2px 6px rgba(20, 12, 2, 0.25);
-  --shadow-md: 0 8px 24px rgba(20, 12, 2, 0.35);
-  --shadow-lg: 0 16px 42px rgba(10, 6, 1, 0.5);
-  --shadow-gold: 0 6px 20px rgba(216, 179, 74, 0.45);
-  --shadow-inset: inset 0 1px 3px rgba(20, 12, 2, 0.25);
+  --shadow-card-sm: 2px 2px 0 rgba(36, 29, 19, 0.2);
+  --shadow-card: 4px 4px 0 rgba(36, 29, 19, 0.22);
+  --shadow-card-lg: 6px 6px 0 rgba(36, 29, 19, 0.22);
+  --shadow-inset: inset 0 1px 3px rgba(36, 29, 19, 0.18);
 
   --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
-  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
-  --dur-fast: 150ms;
-  --dur-base: 250ms;
-  --dur-slow: 450ms;
+  --dur-fast: 120ms;
+  --dur-base: 220ms;
+  --dur-slow: 380ms;
 }
 
 * { box-sizing: border-box; }
 
 body {
   margin: 0;
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   direction: rtl;
   color: var(--color-ink);
-  background: var(--color-bg-deep);
-  background-image:
-    radial-gradient(ellipse 900px 600px at 20% -10%, rgba(216, 179, 74, 0.16), transparent 60%),
-    radial-gradient(ellipse 900px 600px at 85% 110%, rgba(216, 179, 74, 0.1), transparent 60%),
-    radial-gradient(ellipse at top, var(--color-bg-deep-2) 0%, var(--color-bg-deep) 65%);
-  background-attachment: fixed;
+  background-color: var(--color-paper);
+  /* A faint diagonal hatch reads as paper texture without a single gradient
+     blob — flat and specific rather than the generic AI glow-mesh backdrop. */
+  background-image: repeating-linear-gradient(
+    45deg,
+    rgba(36, 29, 19, 0.028) 0,
+    rgba(36, 29, 19, 0.028) 1px,
+    transparent 1px,
+    transparent 11px
+  );
   -webkit-font-smoothing: antialiased;
 }
 
@@ -58,31 +63,20 @@ button { font-family: inherit; }
   to { opacity: 1; }
 }
 @keyframes fadeSlideUp {
-  from { opacity: 0; transform: translateY(22px); }
+  from { opacity: 0; transform: translateY(18px); }
   to { opacity: 1; transform: translateY(0); }
 }
 @keyframes fadeSlideIn {
   from { opacity: 0; transform: translateX(24px); }
   to { opacity: 1; transform: translateX(0); }
 }
-@keyframes popIn {
-  0% { opacity: 0; transform: scale(0.82); }
-  70% { opacity: 1; transform: scale(1.05); }
-  100% { opacity: 1; transform: scale(1); }
-}
-@keyframes letterPop {
-  0% { opacity: 0; transform: translateY(30px) scale(0.5) rotate(-6deg); }
-  60% { opacity: 1; transform: translateY(-6px) scale(1.12) rotate(2deg); }
-  100% { opacity: 1; transform: translateY(0) scale(1) rotate(0); }
-}
-@keyframes pulseGlow {
-  0% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.55); }
-  70% { box-shadow: 0 0 0 18px rgba(76, 175, 80, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0); }
-}
-@keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+/* A quick over-scale-then-settle, like a rubber stamp hitting paper — used
+   for every "this just landed" moment (letters, solved states, titles)
+   instead of a soft radiating glow pulse. */
+@keyframes stamp {
+  0% { opacity: 0; transform: scale(1.9) rotate(var(--stamp-rotate, -3deg)); }
+  55% { opacity: 1; transform: scale(0.92) rotate(var(--stamp-rotate, -3deg)); }
+  100% { opacity: 1; transform: scale(1) rotate(var(--stamp-rotate, -3deg)); }
 }
 @keyframes shake {
   10%, 90% { transform: translateX(-1px); }
@@ -108,7 +102,7 @@ button { font-family: inherit; }
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 20px;
+  gap: 18px;
   text-align: center;
 }
 /* #screen-start's ID selector otherwise outranks .screen[hidden]'s
@@ -116,67 +110,62 @@ button { font-family: inherit; }
 #screen-start[hidden] { display: none; }
 .start-title {
   margin: 0;
-  font-size: 72px;
-  font-weight: 900;
-  color: var(--color-gold-light);
-  text-shadow: 0 4px 28px rgba(216, 179, 74, 0.55);
-  animation: popIn 700ms var(--ease-spring) both;
+  font-family: var(--font-display);
+  font-size: 64px;
+  color: var(--color-accent);
+  --stamp-rotate: -3deg;
+  transform: rotate(-3deg);
+  animation: stamp 500ms var(--ease-standard) both;
 }
 .start-subtitle {
   margin: 0;
   max-width: 480px;
-  font-size: 19px;
-  color: var(--color-surface);
-  opacity: 0.85;
-  animation: fadeSlideUp var(--dur-slow) var(--ease-standard) 200ms both;
+  font-size: 18px;
+  color: var(--color-ink-soft);
+  animation: fadeSlideUp var(--dur-slow) var(--ease-standard) 150ms both;
 }
 .start-button {
-  margin-top: 12px;
-  padding: 16px 56px;
-  font-size: 24px;
-  animation: fadeSlideUp var(--dur-slow) var(--ease-standard) 400ms both;
+  margin-top: 10px;
+  padding: 15px 52px;
+  font-size: 22px;
+  animation: fadeSlideUp var(--dur-slow) var(--ease-standard) 320ms both;
 }
 
 /* Generic button baseline — covers the couple of buttons puzzle modules
    create without a specific class (the jigsaw "check" button, the riddle's
-   continue button), so nothing renders as a bare unstyled browser button. */
+   continue button), so nothing renders as a bare unstyled browser button.
+   Flat fill + a hard offset shadow that compresses on press, like a stamped
+   badge being pushed down, rather than a soft gradient pill lifting up. */
 button {
-  padding: 12px 26px;
-  font-size: 17px;
-  font-weight: 600;
-  border: none;
-  border-radius: var(--radius-pill);
-  background: linear-gradient(135deg, var(--color-gold-light), var(--color-gold));
-  color: var(--color-ink);
+  padding: 11px 24px;
+  font-size: 16px;
+  font-weight: 700;
+  border: 2px solid var(--color-ink);
+  border-radius: var(--radius-sm);
+  background: var(--color-accent);
+  color: var(--color-card-2);
   cursor: pointer;
-  box-shadow: var(--shadow-gold);
-  transition: transform var(--dur-fast) var(--ease-spring), box-shadow var(--dur-fast) var(--ease-standard),
+  box-shadow: var(--shadow-card);
+  transition: transform var(--dur-fast) var(--ease-standard), box-shadow var(--dur-fast) var(--ease-standard),
     opacity var(--dur-fast) var(--ease-standard);
 }
-button:hover { transform: translateY(-2px) scale(1.02); box-shadow: 0 10px 26px rgba(216, 179, 74, 0.55); }
-button:active { transform: translateY(0) scale(0.96); }
+button:hover { transform: translate(-1px, -1px); box-shadow: 5px 5px 0 rgba(36, 29, 19, 0.24); }
+button:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 rgba(36, 29, 19, 0.2); }
 button:disabled { opacity: 0.45; cursor: default; box-shadow: none; transform: none; }
-button:focus-visible { outline: 3px solid var(--color-gold-light); outline-offset: 2px; }
+button:focus-visible { outline: 3px solid var(--color-ink); outline-offset: 2px; }
 
 .map-open-button, .map-close-button {
   position: fixed;
   bottom: 16px;
   left: 16px;
   z-index: 1000;
-  padding: 12px 22px;
-  font-size: 16px;
-  font-weight: 600;
-  border-radius: var(--radius-pill);
+  padding: 11px 20px;
+  font-size: 15px;
   background: var(--color-ink);
-  background-image: linear-gradient(135deg, #3a2a17, var(--color-ink));
-  color: #fff8e6;
-  box-shadow: var(--shadow-md);
+  color: var(--color-card-2);
+  border-color: var(--color-ink);
 }
-.map-open-button:hover, .map-close-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 26px rgba(20, 12, 2, 0.5);
-}
-.map-open-button:active, .map-close-button:active { transform: translateY(0) scale(0.97); }
+.map-open-button:hover, .map-close-button:hover { background: #362b1c; }
 
 /* Dev-only screen navigator — hidden by default, toggled with Ctrl+Shift+D.
    Never meant to be visible during the live event; the red tint is
@@ -190,36 +179,38 @@ button:focus-visible { outline: 3px solid var(--color-gold-light); outline-offse
   gap: 6px;
   padding: 8px;
   background: var(--color-danger);
+  border: 2px solid var(--color-ink);
   border-radius: var(--radius-md);
-  box-shadow: var(--shadow-md);
 }
 .dev-toolbar[hidden] { display: none; }
 .dev-toolbar button {
-  font-size: 16px;
-  padding: 8px 14px;
-  border-radius: var(--radius-sm);
+  font-size: 15px;
+  padding: 7px 12px;
   background: #fff;
-  background-image: none;
   color: #222;
+  border-color: #222;
   box-shadow: none;
 }
-.dev-toolbar button:hover { background: #f2f2f2; box-shadow: none; }
+.dev-toolbar button:hover { background: #f2f2f2; transform: none; box-shadow: none; }
 
-/* Character speech screen: the photo fills the whole screen, the bubble
-   floats on top of it — position:fixed so it covers the viewport regardless
-   of the (unsized) dialogue wrapper div each puzzle renders it into, rather
-   than depending on a height:100% chain through that parent. */
+/* Character speech screen: the photo fills the whole screen in full (never
+   cropped), the bubble floats directly on top of it on the left, with no
+   opaque panel behind it hiding part of the photo. position:fixed so it
+   covers the viewport regardless of the (unsized) dialogue wrapper div each
+   puzzle renders it into, rather than depending on a height:100% chain
+   through that parent. */
 .speech-fullscreen {
   position: fixed;
   inset: 0;
   z-index: 500;
+  background: var(--color-ink);
 }
 .speech-character-fullscreen {
   display: block;
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  animation: fadeIn 600ms var(--ease-standard);
+  object-fit: contain;
+  animation: fadeIn 500ms var(--ease-standard);
 }
 .speech-panel {
   position: absolute;
@@ -230,21 +221,17 @@ button:focus-visible { outline: 3px solid var(--color-gold-light); outline-offse
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 20px;
+  gap: 18px;
   padding: 28px;
-  background: linear-gradient(180deg, rgba(255, 248, 230, 0.97), rgba(255, 248, 230, 0.9));
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  box-shadow: 10px 0 34px rgba(0, 0, 0, 0.4);
   overflow-y: auto;
   animation: fadeSlideIn var(--dur-slow) var(--ease-standard);
 }
 .speech-bubble {
-  padding: 22px;
-  border-radius: var(--radius-lg);
-  background: var(--color-surface-2);
-  border: 2px solid var(--color-gold);
-  box-shadow: var(--shadow-sm);
+  padding: 20px;
+  border-radius: var(--radius-sm);
+  background: var(--color-card-2);
+  border: 2px solid var(--color-ink);
+  box-shadow: var(--shadow-card-lg);
   font-size: 20px;
   line-height: 1.55;
   white-space: pre-line;
@@ -253,73 +240,95 @@ button:focus-visible { outline: 3px solid var(--color-gold-light); outline-offse
 
 #screen-map .leaflet-container { width: 100%; height: 100%; }
 
-/* Map search box: type a place name and jump there (fitBounds only — never
-   reveals a station, same as manually panning/zooming there). */
-.map-search-control {
-  background: var(--color-surface-2);
-  padding: 8px;
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-md);
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  direction: rtl;
+/* Station pins: a real map-pin shape (SVG via L.divIcon), not a plain dot —
+   clearer and more findable at a glance. Hard-offset drop-shadow to match
+   the rest of the page's shadow language instead of Leaflet's default blur. */
+.station-pin {
+  cursor: pointer;
+  filter: drop-shadow(3px 3px 0 rgba(36, 29, 19, 0.35));
 }
+
+/* Map search box: type a place name and jump there (fitBounds only — never
+   reveals a station, same as manually panning/zooming there). A free-text
+   query can be ambiguous, so more than one match shows a picklist instead of
+   silently jumping to whichever result the geocoder happened to rank first. */
+.map-search-control {
+  background: var(--color-card-2);
+  padding: 8px;
+  border: 2px solid var(--color-ink);
+  border-radius: var(--radius-md);
+  direction: rtl;
+  max-width: 280px;
+}
+.map-search-row { display: flex; gap: 8px; align-items: center; }
 .map-search-input {
   font-family: inherit;
   font-size: 14px;
   padding: 7px 10px;
   width: 160px;
-  border: 1.5px solid rgba(42, 29, 16, 0.18);
+  border: 1.5px solid rgba(36, 29, 19, 0.3);
   border-radius: var(--radius-sm);
   direction: rtl;
   text-align: right;
   transition: border-color var(--dur-fast) var(--ease-standard);
 }
-.map-search-input:focus { outline: none; border-color: var(--color-gold); }
+.map-search-input:focus { outline: none; border-color: var(--color-accent); }
 .map-search-button {
   font-family: inherit;
   font-size: 14px;
-  font-weight: 600;
   padding: 7px 16px;
-  border-radius: var(--radius-sm);
-  box-shadow: none;
 }
-.map-search-button:hover { box-shadow: none; }
 .map-search-status { font-size: 12px; color: var(--color-ink-soft); white-space: nowrap; }
+.map-search-results {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  max-height: 220px;
+  overflow-y: auto;
+  border-top: 2px solid var(--color-ink);
+}
+.map-search-results li {
+  padding: 8px 6px;
+  font-size: 13px;
+  line-height: 1.4;
+  cursor: pointer;
+  border-bottom: 1px solid rgba(36, 29, 19, 0.15);
+}
+.map-search-results li:hover { background: rgba(150, 60, 47, 0.12); }
+.map-search-results[hidden] { display: none; }
 
-/* Letter-station popup: the "box with one letter" from the source doc. */
+/* Letter-station popup: the "box with one letter" from the source doc,
+   styled like a rubber-stamped case mark. */
 .letter-box {
-  font-size: 64px;
-  font-weight: 800;
+  font-family: var(--font-display);
+  font-size: 58px;
   text-align: center;
   min-width: 72px;
   line-height: 1.1;
-  color: var(--color-ink);
-  animation: popIn 500ms var(--ease-spring);
+  color: var(--color-accent);
+  --stamp-rotate: -4deg;
+  transform: rotate(-4deg);
+  animation: stamp 400ms var(--ease-standard);
 }
 .letter-popup .leaflet-popup-content { margin: 16px 20px; }
-.letter-popup .leaflet-popup-content-wrapper { border-radius: var(--radius-md); box-shadow: var(--shadow-lg); }
+.letter-popup .leaflet-popup-content-wrapper { border-radius: var(--radius-md); border: 2px solid var(--color-ink); box-shadow: var(--shadow-card); }
 
-/* Puzzle 1: jigsaw */
-.jigsaw-puzzle {
-  display: flex;
-  gap: 32px;
-  justify-content: center;
-  align-items: flex-start;
-  flex-wrap: wrap;
-  margin: 24px auto;
-  padding: 28px;
-  max-width: 900px;
-  background: var(--color-surface);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg);
+/* Shared "case file page" card treatment for each puzzle's main content
+   block: flat paper, ink border, hard offset shadow — no blur, no glow. */
+.jigsaw-puzzle, .crossword-wrapper, .bins-wrapper, .riddle-images {
+  background: var(--color-card);
+  border: 2px solid var(--color-ink);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card-lg);
   animation: fadeSlideUp var(--dur-slow) var(--ease-standard);
 }
+
+/* Puzzle 1: jigsaw */
+.jigsaw-puzzle { display: flex; gap: 32px; justify-content: center; align-items: flex-start; flex-wrap: wrap; margin: 24px auto; padding: 28px; max-width: 900px; }
 .jigsaw-frame {
-  border: 3px solid var(--color-gold-dark);
+  border: 3px solid var(--color-ink);
   border-radius: var(--radius-sm);
-  background: rgba(0, 0, 0, 0.06);
+  background: rgba(36, 29, 19, 0.05);
   box-shadow: var(--shadow-inset);
 }
 /* Cell/piece guides are drawn with outline rather than border so they take no
@@ -328,11 +337,11 @@ button:focus-visible { outline: 3px solid var(--color-gold-light); outline-offse
 .jigsaw-slot {
   width: 60px;
   height: 60px;
-  outline: 1px dashed rgba(42, 29, 16, 0.3);
+  outline: 1px dashed rgba(36, 29, 19, 0.35);
   outline-offset: -1px;
   transition: background var(--dur-fast) var(--ease-standard);
 }
-.jigsaw-slot:hover { background: rgba(216, 179, 74, 0.18); }
+.jigsaw-slot:hover { background: rgba(150, 60, 47, 0.12); }
 .jigsaw-tray {
   display: flex;
   flex-wrap: wrap;
@@ -340,7 +349,7 @@ button:focus-visible { outline: 3px solid var(--color-gold-light); outline-offse
   width: 320px;
   gap: 4px;
   padding: 10px;
-  background: rgba(0, 0, 0, 0.05);
+  background: rgba(36, 29, 19, 0.04);
   border-radius: var(--radius-sm);
 }
 .jigsaw-piece {
@@ -348,30 +357,55 @@ button:focus-visible { outline: 3px solid var(--color-gold-light); outline-offse
   height: 60px;
   background-size: 300px 300px;
   cursor: grab;
-  outline: 1px solid rgba(42, 29, 16, 0.25);
+  outline: 1px solid rgba(36, 29, 19, 0.3);
   outline-offset: -1px;
-  border-radius: 3px;
-  box-shadow: var(--shadow-sm);
-  transition: transform var(--dur-fast) var(--ease-spring), box-shadow var(--dur-fast) var(--ease-standard);
+  transition: transform var(--dur-fast) var(--ease-standard), box-shadow var(--dur-fast) var(--ease-standard);
 }
-.jigsaw-piece:hover { transform: scale(1.08) rotate(-1deg); box-shadow: var(--shadow-md); z-index: 2; position: relative; }
+.jigsaw-piece:hover { transform: translate(-1px, -1px); box-shadow: 2px 2px 0 rgba(36, 29, 19, 0.3); z-index: 2; position: relative; }
 .jigsaw-piece:active { cursor: grabbing; }
 /* Placed pieces drop their outline/shadow so the assembled picture is seamless. */
-.jigsaw-slot .jigsaw-piece { outline: none; box-shadow: none; border-radius: 0; }
+.jigsaw-slot .jigsaw-piece { outline: none; box-shadow: none; }
 .jigsaw-slot .jigsaw-piece:hover { transform: none; }
-.jigsaw-answers { text-align: center; margin-top: 24px; display: flex; gap: 10px; justify-content: center; align-items: center; flex-wrap: wrap; }
+.jigsaw-answers {
+  text-align: center;
+  margin-top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: center;
+}
+.jigsaw-answers[hidden] { display: none; }
+/* Left-to-right order regardless of the page's RTL flow, per the request that
+   the "#" markers read left-to-right rather than following default RTL order. */
+.jigsaw-answers-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; direction: ltr; }
+.jigsaw-answer-item { display: flex; align-items: center; gap: 6px; }
+/* A plain white "#" would vanish against the card's light paper background,
+   so it sits on a small ink badge — still reads as bold and white, just legible. */
+.jigsaw-hash {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 30px;
+  height: 30px;
+  padding: 0 6px;
+  font-size: 20px;
+  font-weight: 800;
+  color: #fff;
+  background: var(--color-ink);
+  border-radius: var(--radius-sm);
+}
 .jigsaw-answers input {
   width: 120px;
   padding: 9px 12px;
-  border: 2px solid rgba(42, 29, 16, 0.18);
+  border: 2px solid rgba(36, 29, 19, 0.3);
   border-radius: var(--radius-sm);
   font-family: inherit;
   font-size: 15px;
-  background: var(--color-surface-2);
-  transition: border-color var(--dur-fast) var(--ease-standard), box-shadow var(--dur-fast) var(--ease-standard);
+  background: var(--color-card-2);
+  transition: border-color var(--dur-fast) var(--ease-standard);
 }
-.jigsaw-answers input:focus { outline: none; border-color: var(--color-gold); box-shadow: 0 0 0 3px rgba(216, 179, 74, 0.25); }
-.jigsaw-answers.solved { outline: 3px solid var(--color-success); border-radius: var(--radius-sm); animation: pulseGlow 1200ms ease-out; }
+.jigsaw-answers input:focus { outline: none; border-color: var(--color-accent); }
+.jigsaw-answers.solved { border: 3px solid var(--color-success); border-radius: var(--radius-sm); --stamp-rotate: -2deg; animation: stamp 400ms var(--ease-standard); }
 .jigsaw-answers.wrong { animation: shake 480ms var(--ease-standard); }
 .jigsaw-answers.wrong input { border-color: var(--color-danger); }
 .answer-feedback {
@@ -379,42 +413,29 @@ button:focus-visible { outline: 3px solid var(--color-gold-light); outline-offse
   margin: 0;
   min-height: 20px;
   color: var(--color-danger);
-  font-weight: 600;
+  font-weight: 700;
   font-size: 14px;
   text-align: center;
 }
 
 /* Puzzle 2: crossword */
-.crossword-wrapper {
-  display: flex;
-  gap: 28px;
-  justify-content: center;
-  align-items: flex-start;
-  flex-wrap: wrap;
-  margin: 24px auto;
-  padding: 28px;
-  max-width: 900px;
-  background: var(--color-surface);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg);
-  animation: fadeSlideUp var(--dur-slow) var(--ease-standard);
-}
+.crossword-wrapper { display: flex; gap: 28px; justify-content: center; align-items: flex-start; flex-wrap: wrap; margin: 24px auto; padding: 28px; max-width: 900px; }
 .crossword-grid { border-radius: var(--radius-sm); overflow: hidden; box-shadow: var(--shadow-inset); }
-.crossword-cell { width: 36px; height: 36px; border: 1px solid rgba(42, 29, 16, 0.5); position: relative; background: var(--color-surface-2); }
+.crossword-cell { width: 36px; height: 36px; border: 1px solid rgba(36, 29, 19, 0.55); position: relative; background: var(--color-card-2); cursor: pointer; }
 .crossword-cell.blocked { background: var(--color-ink); border-color: var(--color-ink); }
 .crossword-input {
   width: 100%;
   height: 100%;
   text-align: center;
   font-size: 18px;
-  font-weight: 600;
+  font-weight: 700;
   font-family: inherit;
   border: none;
   background: transparent;
   color: var(--color-ink);
   transition: background var(--dur-fast) var(--ease-standard);
 }
-.crossword-input:focus { outline: none; background: rgba(216, 179, 74, 0.22); }
+.crossword-input:focus { outline: none; background: rgba(150, 60, 47, 0.18); }
 .crossword-clue-number {
   /* Hit area, not just glyph size — a bare 9px-font digit measures ~5x10px,
      which is nearly impossible to click reliably with a real mouse. */
@@ -428,38 +449,33 @@ button:focus-visible { outline: 3px solid var(--color-gold-light); outline-offse
   justify-content: center;
   font-size: 10px;
   font-weight: 700;
-  color: var(--color-gold-dark);
+  color: var(--color-accent);
   cursor: pointer;
   z-index: 1;
 }
 .crossword-clue-text { max-width: 260px; font-size: 16px; line-height: 1.5; animation: fadeIn var(--dur-base) var(--ease-standard); }
-.crossword-clue-image { max-width: 240px; display: block; margin-top: 10px; border-radius: var(--radius-sm); box-shadow: var(--shadow-sm); }
-.crossword-grid.solved .crossword-input { background: var(--color-success); color: #fff; }
+.crossword-clue-image { max-width: 240px; display: block; margin-top: 10px; border: 2px solid var(--color-ink); border-radius: var(--radius-sm); }
+/* Only the final-answer column (col 8, "בן גוריון" read top-to-bottom) turns
+   green on solve — not the whole grid, which would bury the actual answer. */
+.crossword-cell.solved .crossword-input { background: var(--color-success); color: #fff; }
 
 /* Puzzle 3: bins */
-.bins-wrapper {
-  max-width: 800px;
-  margin: 24px auto;
-  padding: 20px;
-  background: var(--color-surface);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg);
-  animation: fadeSlideUp var(--dur-slow) var(--ease-standard);
-}
-.bins-background { width: 100%; display: block; border-radius: var(--radius-sm); }
+.bins-wrapper { max-width: 800px; margin: 24px auto; padding: 20px; }
+.bins-background { width: 100%; display: block; border: 2px solid var(--color-ink); border-radius: var(--radius-sm); }
 .bin {
-  width: 42px;
-  height: 42px;
+  width: 64px;
+  height: 64px;
   background-size: cover;
-  border: 2px solid rgba(255, 255, 255, 0.55);
+  border: 2px solid var(--color-card-2);
   border-radius: 50%;
   color: #fff;
   font-weight: 800;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
-  box-shadow: var(--shadow-md);
-  transition: transform var(--dur-fast) var(--ease-spring), box-shadow var(--dur-fast) var(--ease-standard);
+  font-size: 16px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
+  box-shadow: var(--shadow-card-sm);
+  transition: transform var(--dur-fast) var(--ease-standard), box-shadow var(--dur-fast) var(--ease-standard);
 }
-.bin:hover { transform: scale(1.12) translateY(-2px); box-shadow: var(--shadow-lg); }
+.bin:hover { transform: translate(-1px, -1px) scale(1.05); box-shadow: 3px 3px 0 rgba(36, 29, 19, 0.3); }
 .bin:active { transform: scale(0.95); }
 .bins-text {
   display: block;
@@ -469,12 +485,12 @@ button:focus-visible { outline: 3px solid var(--color-gold-light); outline-offse
   text-align: center;
   font-size: 22px;
   font-weight: 600;
-  border: 2px solid rgba(42, 29, 16, 0.2);
+  border: 2px solid rgba(36, 29, 19, 0.3);
   border-radius: var(--radius-sm);
-  background: var(--color-surface-2);
+  background: var(--color-card-2);
   transition: background var(--dur-base) var(--ease-standard), color var(--dur-base) var(--ease-standard);
 }
-.bins-text.solved { background: var(--color-success); color: #fff; border-color: var(--color-success-dark); animation: pulseGlow 1200ms ease-out; }
+.bins-text.solved { background: var(--color-success); color: #fff; border-color: var(--color-success-dark); --stamp-rotate: -1deg; animation: stamp 400ms var(--ease-standard); }
 
 /* Puzzle 4: videos */
 /* Cells are 2:3 portrait so the assembled 3-col x 2-row QR sprite comes out
@@ -484,21 +500,22 @@ button:focus-visible { outline: 3px solid var(--color-gold-light); outline-offse
   padding: 16px;
   width: fit-content;
   gap: 4px;
-  background: var(--color-surface);
+  background: var(--color-card);
+  border: 2px solid var(--color-ink);
   border-radius: var(--radius-md);
-  box-shadow: var(--shadow-lg);
+  box-shadow: var(--shadow-card-lg);
   animation: fadeSlideUp var(--dur-slow) var(--ease-standard);
 }
 .video-slot {
   width: 120px;
   height: 180px;
-  border: 2px dashed rgba(42, 29, 16, 0.35);
+  border: 2px dashed rgba(36, 29, 19, 0.4);
   border-radius: var(--radius-sm);
   position: relative;
   transition: border-color var(--dur-fast) var(--ease-standard), background var(--dur-fast) var(--ease-standard);
 }
-.video-slot:hover { border-color: var(--color-gold); background: rgba(216, 179, 74, 0.1); }
-.video-slot-number { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: 700; color: rgba(42, 29, 16, 0.35); }
+.video-slot:hover { border-color: var(--color-accent); background: rgba(150, 60, 47, 0.08); }
+.video-slot-number { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: 700; color: rgba(36, 29, 19, 0.35); }
 .video-tray {
   display: flex;
   flex-wrap: wrap;
@@ -507,16 +524,17 @@ button:focus-visible { outline: 3px solid var(--color-gold-light); outline-offse
   max-width: 92vw;
   margin: 16px auto;
   padding: 14px;
-  background: rgba(255, 248, 230, 0.5);
+  background: rgba(237, 225, 200, 0.6);
+  border: 2px solid rgba(36, 29, 19, 0.3);
   border-radius: var(--radius-md);
 }
-.video-card { width: 120px; height: 180px; cursor: grab; border-radius: var(--radius-sm); overflow: hidden; box-shadow: var(--shadow-sm); transition: transform var(--dur-fast) var(--ease-spring), box-shadow var(--dur-fast) var(--ease-standard); }
-.video-card:hover { transform: translateY(-4px) scale(1.03); box-shadow: var(--shadow-md); }
+.video-card { width: 120px; height: 180px; cursor: grab; border: 2px solid var(--color-ink); border-radius: var(--radius-sm); overflow: hidden; box-shadow: var(--shadow-card-sm); transition: transform var(--dur-fast) var(--ease-standard), box-shadow var(--dur-fast) var(--ease-standard); }
+.video-card:hover { transform: translate(-1px, -1px); box-shadow: var(--shadow-card); }
 .video-card-face { width: 100%; height: 100%; background-size: cover; background-position: center; display: flex; align-items: center; justify-content: center; font-size: 24px; background-color: #333; color: #fff; }
 /* Solved: the QR must read as one clean image — no gutters between the pieces,
    no dashed slot borders painting seams through it. The green "frame" the
    source doc asks for goes around the whole grid, not around each cell. */
-.video-grid.solved { gap: 0; padding: 0; border-radius: 0; outline: 6px solid var(--color-success); animation: pulseGlow 1400ms ease-out; }
+.video-grid.solved { gap: 0; padding: 0; border-radius: 0; border: 5px solid var(--color-success); --stamp-rotate: 0deg; animation: stamp 400ms var(--ease-standard); }
 .video-grid.solved .video-slot { border: none; border-radius: 0; }
 
 /* Video playback modal: clicking a card plays it in the page instead of
@@ -525,7 +543,7 @@ button:focus-visible { outline: 3px solid var(--color-gold-light); outline-offse
   position: fixed;
   inset: 0;
   z-index: 1500;
-  background: rgba(10, 6, 2, 0.82);
+  background: rgba(20, 15, 8, 0.85);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -534,13 +552,13 @@ button:focus-visible { outline: 3px solid var(--color-gold-light); outline-offse
 .video-modal {
   position: relative;
   background: #000;
+  border: 3px solid var(--color-card-2);
   border-radius: var(--radius-md);
   padding: 8px;
   max-width: 90vw;
   max-height: 90vh;
   display: flex;
-  box-shadow: var(--shadow-lg);
-  animation: popIn var(--dur-base) var(--ease-spring);
+  box-shadow: var(--shadow-card-lg);
 }
 .video-modal-close {
   position: absolute;
@@ -549,73 +567,57 @@ button:focus-visible { outline: 3px solid var(--color-gold-light); outline-offse
   width: 34px;
   height: 34px;
   border-radius: 50%;
-  background: #fff;
-  background-image: none;
-  color: #222;
+  background: var(--color-card-2);
+  color: var(--color-ink);
   font-size: 16px;
   z-index: 1;
-  box-shadow: var(--shadow-md);
 }
-.video-modal-close:hover { background: #f2f2f2; transform: scale(1.08); box-shadow: var(--shadow-md); }
+.video-modal-close:hover { background: #fff; }
 .video-modal-iframe { width: min(80vw, 640px); height: min(45vw, 360px); border: none; }
 
 /* Shared puzzle buttons */
-.puzzle-action-button, .puzzle-continue-button {
+.puzzle-action-button {
   display: block;
   margin: 20px auto;
 }
-.puzzle-continue-button {
-  background: linear-gradient(135deg, #6fcf73, var(--color-success));
-  color: #fff;
-  box-shadow: 0 6px 20px rgba(76, 175, 80, 0.45);
-}
-.puzzle-continue-button:hover { box-shadow: 0 10px 26px rgba(76, 175, 80, 0.55); }
-.puzzle-continue-button[hidden], .puzzle-action-button[hidden] { display: none; }
+.puzzle-action-button[hidden] { display: none; }
 
-/* Puzzle 5: riddle */
-.riddle-images {
-  display: flex;
-  gap: 16px;
-  justify-content: center;
-  flex-wrap: wrap;
-  margin: 24px auto;
-  padding: 20px;
-  max-width: 1100px;
-  background: var(--color-surface);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg);
-  animation: fadeSlideUp var(--dur-slow) var(--ease-standard);
-}
-.riddle-image { max-width: 30%; max-height: 60vh; object-fit: contain; border-radius: var(--radius-sm); box-shadow: var(--shadow-sm); }
+/* Puzzle 5: riddle — a one-at-a-time "train" of images with linear back/forward
+   nav, replacing the old three-across layout + separate continue button. */
+.riddle-images { display: flex; gap: 20px; justify-content: center; align-items: center; margin: 24px auto; padding: 20px; max-width: 1100px; }
+.riddle-image { max-width: 60vw; max-height: 65vh; object-fit: contain; border: 2px solid var(--color-ink); border-radius: var(--radius-sm); }
+.riddle-nav-button { font-size: 22px; padding: 14px 20px; }
+.riddle-nav-button:disabled { opacity: 0.35; cursor: not-allowed; }
 
 /* Final screen */
 .final-letters {
   text-align: center;
-  margin-top: 18vh;
-  font-size: 72px;
-  font-weight: 800;
-  letter-spacing: 4px;
-  color: var(--color-gold-light);
-  text-shadow: 0 4px 24px rgba(216, 179, 74, 0.5);
+  margin-top: 16vh;
+  font-family: var(--font-display);
+  font-size: 76px;
+  letter-spacing: 6px;
+  color: var(--color-accent);
 }
 .final-letter {
   display: inline-block;
-  margin: 0 10px;
-  animation: letterPop 700ms var(--ease-spring) both;
-  animation-delay: calc(var(--i) * 160ms);
+  margin: 0 8px;
+  --stamp-rotate: -3deg;
+  animation: stamp 500ms var(--ease-standard) both;
+  animation-delay: calc(var(--i) * 180ms);
 }
 .final-finish-button {
   display: block;
   margin: 40px auto;
-  padding: 16px 56px;
-  font-size: 24px;
+  padding: 15px 52px;
+  font-size: 22px;
   animation: fadeSlideUp var(--dur-slow) var(--ease-standard) 900ms both;
 }
 .final-thanks {
-  font-size: 56px;
-  font-weight: 700;
+  font-family: var(--font-display);
+  font-size: 50px;
   text-align: center;
-  margin-top: 38vh;
-  color: var(--color-gold-light);
-  animation: popIn 600ms var(--ease-spring);
+  margin-top: 36vh;
+  color: var(--color-ink);
+  --stamp-rotate: -2deg;
+  animation: stamp 450ms var(--ease-standard);
 }

@@ -2,14 +2,34 @@
 import { STATIONS, INITIAL_MAP_VIEW } from './stations.js';
 import { isStationVisible } from './geo.js';
 
+// A handful of Hebrew place names that come up in this game's clues but that
+// Nominatim's free-text matching gets wrong: it has no Hebrew name tag for
+// these places, so it fuzzy-matches the Hebrew spelling to an unrelated place
+// with a similar-sounding transliterated name instead (e.g. "מטאורה" — the
+// Greek rock monasteries — resolves to Mathura, India). Each entry maps the
+// Hebrew query players are likely to type to a query string confirmed to find
+// the right place.
+export const SEARCH_ALIASES = {
+  'מטאורה': 'Meteora, Greece',
+  'מטאורה יוון': 'Meteora, Greece',
+  'מטאורה, יוון': 'Meteora, Greece',
+};
+
+export function resolveSearchQuery(query) {
+  return SEARCH_ALIASES[query.trim()] || query;
+}
+
 // Free, no-API-key place search via OpenStreetMap's Nominatim — consistent with
 // the map tiles themselves. Exported (pure fetch wrapper) so it's easy to test
 // in isolation from the DOM control that calls it.
 export async function searchPlace(query) {
-  const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(query)}`;
+  // accept-language biases Nominatim's own multilingual name matching toward
+  // Hebrew queries; limit=5 (not 1) so an ambiguous query can be resolved by
+  // the group picking the right one, rather than silently taking whichever
+  // result happened to rank first internally.
+  const url = `https://nominatim.openstreetmap.org/search?format=json&limit=5&accept-language=he&q=${encodeURIComponent(resolveSearchQuery(query))}`;
   const response = await fetch(url);
-  const results = await response.json();
-  return results[0] || null;
+  return response.json();
 }
 
 function addSearchControl(map) {
@@ -18,9 +38,12 @@ function addSearchControl(map) {
   control.onAdd = () => {
     const container = L.DomUtil.create('div', 'map-search-control');
     container.innerHTML = `
-      <input type="text" class="map-search-input" placeholder="חיפוש מקום..." />
-      <button type="button" class="map-search-button">חפש</button>
-      <span class="map-search-status"></span>
+      <div class="map-search-row">
+        <input type="text" class="map-search-input" placeholder="חיפוש מקום..." />
+        <button type="button" class="map-search-button">חפש</button>
+        <span class="map-search-status"></span>
+      </div>
+      <ul class="map-search-results" hidden></ul>
     `;
 
     // A player typing/clicking inside this control must not pan/zoom the map underneath it.
@@ -30,20 +53,43 @@ function addSearchControl(map) {
     const input = container.querySelector('.map-search-input');
     const button = container.querySelector('.map-search-button');
     const status = container.querySelector('.map-search-status');
+    const resultsEl = container.querySelector('.map-search-results');
+
+    function goTo(result) {
+      const [south, north, west, east] = result.boundingbox.map(Number);
+      map.fitBounds([[south, west], [north, east]]);
+      resultsEl.hidden = true;
+      resultsEl.innerHTML = '';
+      status.textContent = '';
+    }
 
     async function runSearch() {
       const query = input.value.trim();
       if (!query) return;
       status.textContent = 'מחפש...';
+      resultsEl.hidden = true;
+      resultsEl.innerHTML = '';
       try {
-        const result = await searchPlace(query);
-        if (!result) {
+        const results = await searchPlace(query);
+        if (!results.length) {
           status.textContent = 'לא נמצא';
           return;
         }
-        const [south, north, west, east] = result.boundingbox.map(Number);
-        map.fitBounds([[south, west], [north, east]]);
+        // A free-text place name is often ambiguous ("מטאורה" matches more
+        // than one place) — let the group pick the right result instead of
+        // silently guessing which one Nominatim ranked first.
+        if (results.length === 1) {
+          goTo(results[0]);
+          return;
+        }
         status.textContent = '';
+        results.forEach((result) => {
+          const li = document.createElement('li');
+          li.textContent = result.display_name;
+          li.addEventListener('click', () => goTo(result));
+          resultsEl.appendChild(li);
+        });
+        resultsEl.hidden = false;
       } catch {
         status.textContent = 'שגיאת חיפוש';
       }
@@ -58,6 +104,26 @@ function addSearchControl(map) {
   };
 
   control.addTo(map);
+}
+
+// A map-pin/pushpin icon (not a plain dot) so a station reads clearly as a
+// findable location on the map, in the same ink+stamp-red visual language as
+// the rest of the game.
+function createPinIcon(fillColor) {
+  const svg = `
+    <svg width="34" height="44" viewBox="0 0 34 44" xmlns="http://www.w3.org/2000/svg">
+      <path d="M17 0C7.6 0 0 7.6 0 17c0 12.7 17 27 17 27s17-14.3 17-27C34 7.6 26.4 0 17 0z"
+            fill="${fillColor}" stroke="#241d13" stroke-width="2"/>
+      <circle cx="17" cy="16" r="6" fill="#241d13" />
+    </svg>
+  `;
+  return L.divIcon({
+    className: 'station-pin',
+    html: svg,
+    iconSize: [34, 44],
+    iconAnchor: [17, 42],
+    popupAnchor: [0, -40],
+  });
 }
 
 export function initMap(container, {
@@ -104,20 +170,16 @@ export function initMap(container, {
         continue;
       }
 
-      const fillColor = isStationSolved(station) ? '#4caf50' : '#d8b34a';
+      const fillColor = isStationSolved(station) ? '#3f6b3a' : '#963c2f';
 
       if (existing) {
         // Re-color in case it was solved/discovered since it was first drawn.
-        existing.setStyle({ fillColor });
+        existing.setIcon(createPinIcon(fillColor));
         continue;
       }
 
-      const marker = L.circleMarker([station.lat, station.lng], {
-        radius: 12,
-        color: '#222',
-        fillColor,
-        fillOpacity: 0.9,
-        weight: 2,
+      const marker = L.marker([station.lat, station.lng], {
+        icon: createPinIcon(fillColor),
       }).addTo(map);
 
       marker.on('click', () => {

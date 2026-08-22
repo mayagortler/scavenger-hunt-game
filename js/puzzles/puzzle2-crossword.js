@@ -58,6 +58,30 @@ export function isCrosswordSolved(userGrid, solutionGrid) {
   return true;
 }
 
+// Every row in this grid holds exactly one clue's word (a single horizontal
+// run starting at that row's numbered cell), so the clue owning any playable
+// cell is just "whichever clue number appears anywhere in this row".
+export function getClueNumberForRow(row) {
+  const numbered = row.find((cell) => cell && cell.clueNumber);
+  return numbered ? numbered.clueNumber : null;
+}
+
+// Column 8 is the letter every one of the 8 across-words crosses through, and
+// reading it top-to-bottom spells the final answer "בן גוריון" — the only
+// column that should be marked solved, not the whole grid (verified by
+// tracing CROSSWORD_GRID: ב-נ-ג-ו-ר-י-ו-נ).
+export const FINAL_COLUMN = 8;
+
+export function isFinalColumnSolved(userGrid, solutionGrid) {
+  for (let r = 0; r < solutionGrid.length; r++) {
+    const solutionCell = solutionGrid[r][FINAL_COLUMN];
+    if (solutionCell === null) continue;
+    const typed = normalizeHebrewLetter((userGrid[r][FINAL_COLUMN] || '').trim());
+    if (typed !== normalizeHebrewLetter(solutionCell.letter)) return false;
+  }
+  return true;
+}
+
 const INTRO_TEXT =
   'היי; התגעגעתם אליי? כן. החידה הבאה. שאלות; השלמת מילים מהווצאפ. למלא בתשבץ. לפתור נכון – ג ר מ נ י ה. בהצלחה.';
 
@@ -70,7 +94,7 @@ export function initPuzzle2(container, { onSolved }) {
     characterImage: 'assets/images/char-avi-boaz.jpeg',
     characterName: 'אבי בועז',
     text: INTRO_TEXT,
-    buttonLabel: '→',
+    buttonLabel: '←',
     onAdvance: () => {
       dialogueEl.remove();
       renderPuzzle();
@@ -79,6 +103,7 @@ export function initPuzzle2(container, { onSolved }) {
 
   function renderPuzzle() {
     let userGrid = createEmptyUserGrid(CROSSWORD_GRID);
+    let advanced = false;
 
     const wrapper = document.createElement('div');
     wrapper.className = 'crossword-wrapper';
@@ -91,7 +116,30 @@ export function initPuzzle2(container, { onSolved }) {
     grid.style.display = 'grid';
     grid.style.gridTemplateColumns = `repeat(${CROSSWORD_GRID[0].length}, 36px)`;
 
+    function showClue(clueNumber) {
+      const clue = CLUES.find((cl) => cl.number === clueNumber);
+      if (!clue) return;
+      clueText.innerHTML = '';
+      const p = document.createElement('p');
+      p.textContent = clue.text;
+      clueText.appendChild(p);
+      if (clue.image) {
+        const img = document.createElement('img');
+        img.src = clue.image;
+        img.className = 'crossword-clue-image';
+        clueText.appendChild(img);
+      }
+    }
+
+    // input[r][c] for the auto-advance-to-next-cell behavior below; only
+    // playable cells get an entry (blocked cells stay undefined).
+    const inputEls = CROSSWORD_GRID.map((row) => row.map(() => undefined));
+    // Column-8 cells only (the compiled final-answer column) — solved marks
+    // just these, not the whole grid.
+    const finalColumnCellEls = [];
+
     CROSSWORD_GRID.forEach((row, r) => {
+      const rowClueNumber = getClueNumberForRow(row);
       row.forEach((cell, c) => {
         const cellEl = document.createElement('div');
         cellEl.className = 'crossword-cell';
@@ -100,23 +148,13 @@ export function initPuzzle2(container, { onSolved }) {
           grid.appendChild(cellEl);
           return;
         }
+        // Any cell belonging to this clue's word shows its definition, not
+        // just the numbered cell — the number is a tiny, easy-to-miss target.
+        cellEl.addEventListener('click', () => showClue(rowClueNumber));
         if (cell.clueNumber) {
           const numberEl = document.createElement('span');
           numberEl.className = 'crossword-clue-number';
           numberEl.textContent = String(cell.clueNumber);
-          numberEl.addEventListener('click', () => {
-            const clue = CLUES.find((cl) => cl.number === cell.clueNumber);
-            clueText.innerHTML = '';
-            const p = document.createElement('p');
-            p.textContent = clue.text;
-            clueText.appendChild(p);
-            if (clue.image) {
-              const img = document.createElement('img');
-              img.src = clue.image;
-              img.className = 'crossword-clue-image';
-              clueText.appendChild(img);
-            }
-          });
           cellEl.appendChild(numberEl);
         }
         const input = document.createElement('input');
@@ -125,27 +163,31 @@ export function initPuzzle2(container, { onSolved }) {
         input.addEventListener('input', () => {
           userGrid = setCellLetter(userGrid, r, c, input.value);
           input.value = userGrid[r][c];
+
+          if (input.value) {
+            // Auto-advance to the next cell of the same word, if any.
+            const nextInput = inputEls[r][c + 1];
+            if (nextInput) nextInput.focus();
+          }
+
+          const columnSolved = isFinalColumnSolved(userGrid, CROSSWORD_GRID);
+          finalColumnCellEls.forEach((el) => el.classList.toggle('solved', columnSolved));
+
           const solved = isCrosswordSolved(userGrid, CROSSWORD_GRID);
-          grid.classList.toggle('solved', solved);
-          continueButton.hidden = !solved;
+          if (solved && !advanced) {
+            advanced = true;
+            onSolved?.();
+          }
         });
         cellEl.appendChild(input);
         grid.appendChild(cellEl);
+        inputEls[r][c] = input;
+        if (c === FINAL_COLUMN) finalColumnCellEls.push(cellEl);
       });
     });
 
     wrapper.appendChild(clueText);
     wrapper.appendChild(grid);
     container.appendChild(wrapper);
-
-    // Shown only once the grid is solved. The group needs a beat to see the
-    // green confirmation before leaving, so moving on is an explicit click
-    // rather than something that fires on the last keystroke.
-    const continueButton = document.createElement('button');
-    continueButton.className = 'puzzle-continue-button';
-    continueButton.textContent = 'המשך';
-    continueButton.hidden = true;
-    continueButton.addEventListener('click', () => onSolved?.());
-    container.appendChild(continueButton);
   }
 }
