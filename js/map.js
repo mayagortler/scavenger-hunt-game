@@ -64,6 +64,17 @@ export function initMap(container, {
         if (station.puzzleId) {
           onPuzzleStationClick?.(station);
         } else {
+          // Source doc: "בלחיצה על הסימון, תיפתח תיבה שתכיל אות אחת" — clicking a
+          // letter station must show the player its letter. Bound on every click
+          // (not only the first discovery) so re-clicking a green, already-found
+          // station shows the letter again. Opened before the callback so the
+          // popup is up regardless of what the callback does to the map/screen.
+          marker
+            .bindPopup(`<div class="letter-box">${station.letter}</div>`, {
+              className: 'letter-popup',
+              closeButton: true,
+            })
+            .openPopup();
           onLetterStationClick?.(station);
         }
       });
