@@ -96,6 +96,41 @@ button { font-family: inherit; }
 .screen:not([hidden]) { animation: fadeIn var(--dur-slow) var(--ease-standard); }
 #screen-map { padding: 0; }
 
+/* Start (title) screen */
+#screen-start {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  text-align: center;
+}
+/* #screen-start's ID selector otherwise outranks .screen[hidden]'s
+   class+attribute specificity, so "hidden" alone wouldn't actually hide it. */
+#screen-start[hidden] { display: none; }
+.start-title {
+  margin: 0;
+  font-size: 72px;
+  font-weight: 900;
+  color: var(--color-gold-light);
+  text-shadow: 0 4px 28px rgba(216, 179, 74, 0.55);
+  animation: popIn 700ms var(--ease-spring) both;
+}
+.start-subtitle {
+  margin: 0;
+  max-width: 480px;
+  font-size: 19px;
+  color: var(--color-surface);
+  opacity: 0.85;
+  animation: fadeSlideUp var(--dur-slow) var(--ease-standard) 200ms both;
+}
+.start-button {
+  margin-top: 12px;
+  padding: 16px 56px;
+  font-size: 24px;
+  animation: fadeSlideUp var(--dur-slow) var(--ease-standard) 400ms both;
+}
+
 /* Generic button baseline — covers the couple of buttons puzzle modules
    create without a specific class (the jigsaw "check" button, the riddle's
    continue button), so nothing renders as a bare unstyled browser button. */

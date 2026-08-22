@@ -21,6 +21,7 @@ const storage = window.localStorage;
 let state = loadState(storage);
 
 const screens = {
+  start: document.getElementById('screen-start'),
   map: document.getElementById('screen-map'),
   puzzle1: document.getElementById('screen-puzzle1'),
   puzzle2: document.getElementById('screen-puzzle2'),
@@ -33,7 +34,7 @@ const screens = {
 // Fixed order for the dev toolbar's back/forward arrows — not the actual
 // game flow (puzzle 6's four letter-stations aren't single screens), just a
 // convenient linear tour of every screen for manual testing during dev.
-const SCREEN_ORDER = ['map', 'puzzle1', 'puzzle2', 'puzzle3', 'puzzle4', 'puzzle5', 'final'];
+const SCREEN_ORDER = ['start', 'map', 'puzzle1', 'puzzle2', 'puzzle3', 'puzzle4', 'puzzle5', 'final'];
 
 let currentScreenId = null;
 
@@ -69,10 +70,7 @@ function showScreen(screenId) {
     el.hidden = id !== screenId;
   }
   currentScreenId = screenId;
-  if (screenId !== 'map') {
-    state = setLastOpenScreen(state, screenId);
-    persist();
-  } else {
+  if (screenId === 'map') {
     // Re-apply the current view (a no-op pan/zoom-wise) so refreshMarkers()
     // runs and picks up any puzzle solved/letter discovered while this
     // screen was hidden — invalidateSize() alone only fixes tile sizing,
@@ -80,6 +78,11 @@ function showScreen(screenId) {
     // zoomend trigger refreshMarkers()).
     mapHandle.setView(state.lastMapView || INITIAL_MAP_VIEW);
     mapHandle.invalidateSize();
+  } else if (screenId !== 'start') {
+    // 'start' is a transient title screen, never a place to resume into —
+    // it's shown once on every load, not persisted as lastOpenScreen.
+    state = setLastOpenScreen(state, screenId);
+    persist();
   }
 }
 
@@ -189,6 +192,25 @@ mapCloseButton.addEventListener('click', () => {
 });
 screens.map.appendChild(mapCloseButton);
 
+// --- Start (title) screen ---
+function initStartScreen() {
+  const title = document.createElement('h1');
+  title.className = 'start-title';
+  title.textContent = 'ציד האוצר';
+
+  const subtitle = document.createElement('p');
+  subtitle.className = 'start-subtitle';
+  subtitle.textContent = 'פתרו חידות, עקבו אחר המפה, וגלו את הקוד הסודי';
+
+  const startButton = document.createElement('button');
+  startButton.className = 'start-button';
+  startButton.textContent = 'התחל';
+  startButton.addEventListener('click', () => showScreen(state.lastOpenScreen || 'map'));
+
+  screens.start.append(title, subtitle, startButton);
+}
+initStartScreen();
+
 // --- Dev-only screen navigator (hidden by default; Ctrl+Shift+D toggles it) ---
 // Lets whoever is building/testing the game jump directly to any screen and
 // solve the current puzzle with a click, instead of navigating the map and
@@ -268,7 +290,7 @@ if (state.lastOpenScreen === 'final') {
   // state (letters, solved puzzles) being intact in localStorage.
   renderFinalScreenIfReady();
 }
-showScreen(state.lastOpenScreen || 'map');
+showScreen('start');
 if (state.lastMapView) {
   mapHandle.setView(state.lastMapView);
 }
