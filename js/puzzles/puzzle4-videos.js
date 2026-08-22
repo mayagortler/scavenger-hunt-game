@@ -1,5 +1,6 @@
 // js/puzzles/puzzle4-videos.js
 import { renderSpeechBubble } from '../speechBubble.js';
+import { shuffle } from '../shuffle.js';
 
 export const VIDEO_ORDER = [
   'https://share.google/nGTqH8IsAVXb0NTNg',
@@ -44,6 +45,9 @@ const INTRO_TEXT =
 
 const GRID_COLS = 3;
 const GRID_ROWS = 2;
+// Must match .video-slot / .video-card in css/style.css: a 2:3 portrait cell so
+// the assembled GRID_COLS x GRID_ROWS sprite is square.
+const CELL_WIDTH_PX = 120;
 
 export function initPuzzle4(container, { onSolved }) {
   container.innerHTML = '';
@@ -62,12 +66,13 @@ export function initPuzzle4(container, { onSolved }) {
   });
 
   function renderPuzzle() {
-    let cards = createVideoCards();
+    // Tray layout order is scrambled; each card keeps its own correctSlot.
+    let cards = shuffle(createVideoCards());
 
     const grid = document.createElement('div');
     grid.className = 'video-grid';
     grid.style.display = 'grid';
-    grid.style.gridTemplateColumns = `repeat(${GRID_COLS}, 160px)`;
+    grid.style.gridTemplateColumns = `repeat(${GRID_COLS}, ${CELL_WIDTH_PX}px)`;
 
     const slotEls = [];
     for (let slot = 0; slot < 6; slot++) {
@@ -102,7 +107,9 @@ export function initPuzzle4(container, { onSolved }) {
         if (front) {
           face.style.backgroundImage = `url('${front}')`;
         } else {
-          face.textContent = String(card.id + 1);
+          // Order-neutral placeholder: the old `card.id + 1` printed the card's
+          // own correct slot number on its face, i.e. the answer.
+          face.textContent = '▶';
           face.classList.add('video-card-placeholder');
         }
       }
@@ -134,7 +141,16 @@ export function initPuzzle4(container, { onSolved }) {
       slotEls.forEach((slotEl, slot) => {
         slotEl.innerHTML = '';
         const card = cards.find((c) => c.currentSlot === slot);
-        if (card) slotEl.appendChild(buildCardEl(card));
+        if (card) {
+          slotEl.appendChild(buildCardEl(card));
+          return;
+        }
+        // Empty slots show their 1-based position. The page is RTL so the grid
+        // flows right-to-left and "first" is not obviously the top-left cell.
+        const numberEl = document.createElement('span');
+        numberEl.className = 'video-slot-number';
+        numberEl.textContent = String(slot + 1);
+        slotEl.appendChild(numberEl);
       });
 
       tray.innerHTML = '';
@@ -142,10 +158,11 @@ export function initPuzzle4(container, { onSolved }) {
         .filter((c) => c.currentSlot === null)
         .forEach((card) => tray.appendChild(buildCardEl(card)));
 
-      if (isVideoOrderSolved(cards)) {
-        grid.classList.add('solved');
-        onSolved?.();
-      }
+      // Toggled, not just added: the flip button can un-flip a solved board,
+      // which must drop the green frame and bring the gutters/borders back.
+      const solved = isVideoOrderSolved(cards);
+      grid.classList.toggle('solved', solved);
+      continueButton.hidden = !solved;
     }
 
     function handleDrop(cardId, slot) {
@@ -158,9 +175,19 @@ export function initPuzzle4(container, { onSolved }) {
       renderAll();
     }
 
+    // Shown only once solved: the group needs to actually look at the assembled
+    // QR (and scan it) before the app navigates away, so leaving the screen is
+    // an explicit click rather than something that happens on the last drop.
+    const continueButton = document.createElement('button');
+    continueButton.className = 'puzzle-continue-button';
+    continueButton.textContent = 'המשך';
+    continueButton.hidden = true;
+    continueButton.addEventListener('click', () => onSolved?.());
+
     renderAll();
 
     const flipButton = document.createElement('button');
+    flipButton.className = 'puzzle-action-button';
     flipButton.textContent = 'הפוך';
     flipButton.addEventListener('click', () => {
       cards = cards.map((c) => ({ ...c, flipped: !c.flipped }));
@@ -170,5 +197,6 @@ export function initPuzzle4(container, { onSolved }) {
     container.appendChild(grid);
     container.appendChild(tray);
     container.appendChild(flipButton);
+    container.appendChild(continueButton);
   }
 }

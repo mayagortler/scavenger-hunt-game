@@ -55,12 +55,28 @@ body { margin: 0; font-family: system-ui, sans-serif; direction: rtl; }
 #screen-map { padding: 0; }
 #screen-map .leaflet-container { width: 100%; height: 100%; }
 
+/* Letter-station popup: the "box with one letter" from the source doc. */
+.letter-box {
+  font-size: 56px;
+  font-weight: bold;
+  text-align: center;
+  min-width: 72px;
+  line-height: 1.1;
+  color: #222;
+}
+.letter-popup .leaflet-popup-content { margin: 12px 16px; }
+
 /* Puzzle 1: jigsaw */
 .jigsaw-puzzle { display: flex; gap: 24px; justify-content: center; margin-top: 16px; }
 .jigsaw-frame { border: 2px solid #333; }
-.jigsaw-slot { width: 60px; height: 60px; border: 1px solid #ccc; }
-.jigsaw-tray { display: flex; flex-wrap: wrap; width: 320px; gap: 2px; }
-.jigsaw-piece { width: 60px; height: 60px; background-size: 300px 300px; cursor: grab; border: 1px solid #999; }
+/* Cell/piece guides are drawn with outline rather than border so they take no
+   layout space: a bordered 60px box would shrink its content to 58px (global
+   border-box) and knock the 300px background sprite out of alignment. */
+.jigsaw-slot { width: 60px; height: 60px; outline: 1px solid #ccc; outline-offset: -1px; }
+.jigsaw-tray { display: flex; flex-wrap: wrap; align-content: flex-start; width: 320px; gap: 2px; }
+.jigsaw-piece { width: 60px; height: 60px; background-size: 300px 300px; cursor: grab; outline: 1px solid #999; outline-offset: -1px; }
+/* Placed pieces drop their outline so the assembled picture is seamless. */
+.jigsaw-slot .jigsaw-piece { outline: none; }
 .jigsaw-answers { text-align: center; margin-top: 16px; }
 .jigsaw-answers input { width: 100px; margin: 0 6px; }
 .jigsaw-answers.solved { outline: 3px solid #4caf50; }
@@ -83,12 +99,34 @@ body { margin: 0; font-family: system-ui, sans-serif; direction: rtl; }
 .bins-text.solved { background: #4caf50; }
 
 /* Puzzle 4: videos */
+/* Cells are 2:3 portrait so the assembled 3-col x 2-row QR sprite comes out
+   square (3 x 120 = 360 wide, 2 x 180 = 360 tall) instead of stretched 2.4:1. */
 .video-grid { margin: 16px auto; width: fit-content; gap: 4px; }
-.video-slot { width: 160px; height: 100px; border: 2px dashed #999; }
-.video-tray { display: flex; flex-wrap: wrap; gap: 8px; width: 520px; margin: 16px auto; }
-.video-card { width: 160px; height: 100px; cursor: grab; }
+.video-slot { width: 120px; height: 180px; border: 2px dashed #999; position: relative; }
+.video-slot-number { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 32px; color: #999; }
+.video-tray { display: flex; flex-wrap: wrap; gap: 8px; width: 760px; margin: 16px auto; }
+.video-card { width: 120px; height: 180px; cursor: grab; }
 .video-card-face { width: 100%; height: 100%; background-size: cover; background-position: center; display: flex; align-items: center; justify-content: center; font-size: 24px; background-color: #333; color: #fff; }
-.video-grid.solved .video-slot { outline: 3px solid #4caf50; }
+/* Solved: the QR must read as one clean image — no gutters between the pieces,
+   no dashed slot borders painting seams through it. The green "frame" the
+   source doc asks for goes around the whole grid, not around each cell. */
+.video-grid.solved { gap: 0; outline: 3px solid #4caf50; }
+.video-grid.solved .video-slot { border: none; }
+
+/* Shared puzzle buttons */
+.puzzle-action-button, .puzzle-continue-button {
+  display: block;
+  margin: 16px auto;
+  padding: 10px 28px;
+  font-size: 18px;
+  border-radius: 8px;
+  border: none;
+  background: #d8b34a;
+  color: #222;
+  cursor: pointer;
+}
+.puzzle-continue-button { background: #4caf50; color: #fff; }
+.puzzle-continue-button[hidden], .puzzle-action-button[hidden] { display: none; }
 
 /* Puzzle 5: riddle */
 .riddle-images { display: flex; gap: 16px; justify-content: center; margin-top: 16px; }
@@ -97,3 +135,4 @@ body { margin: 0; font-family: system-ui, sans-serif; direction: rtl; }
 /* Final screen */
 .final-letters { font-size: 64px; text-align: center; margin-top: 20vh; letter-spacing: 12px; }
 .final-finish-button { display: block; margin: 32px auto; padding: 16px 48px; font-size: 24px; border-radius: 8px; border: none; background: #d8b34a; cursor: pointer; }
+.final-thanks { font-size: 56px; text-align: center; margin-top: 40vh; }

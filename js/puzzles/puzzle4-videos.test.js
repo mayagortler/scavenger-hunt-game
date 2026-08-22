@@ -9,6 +9,7 @@ import {
   createVideoCards,
   isVideoOrderSolved,
 } from './puzzle4-videos.js';
+import { shuffle } from '../shuffle.js';
 
 test('VIDEO_ORDER has the 6 links from the spec in order', () => {
   assert.equal(VIDEO_ORDER.length, 6);
@@ -51,4 +52,15 @@ test('isVideoOrderSolved requires every card correctly placed AND flipped', () =
   assert.equal(isVideoOrderSolved(cards), true);
   cards[0].currentSlot = 5;
   assert.equal(isVideoOrderSolved(cards), false);
+});
+
+test('shuffling the cards scrambles tray order without touching correctSlot', () => {
+  // Deterministic "random" that always picks index 0, which reverses-ish the
+  // array — enough to prove the display order moves while the answer does not.
+  const shuffled = shuffle(createVideoCards(), () => 0);
+  assert.notDeepEqual(shuffled.map((c) => c.id), [0, 1, 2, 3, 4, 5]);
+  for (const card of shuffled) {
+    assert.equal(card.correctSlot, card.id, 'correctSlot still matches VIDEO_ORDER position');
+    assert.equal(card.url, VIDEO_ORDER[card.correctSlot]);
+  }
 });
