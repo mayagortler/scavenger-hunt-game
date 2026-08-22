@@ -10,7 +10,15 @@ export function renderFinalScreen(container, { finalLetters, onFinish }) {
 
   const lettersEl = document.createElement('div');
   lettersEl.className = 'final-letters';
-  lettersEl.textContent = finalLetters.split('').join(' ');
+  // Each letter is its own element (not one text node) purely so CSS can
+  // stagger its reveal animation by index via the --i custom property.
+  finalLetters.split('').forEach((letter, i) => {
+    const span = document.createElement('span');
+    span.className = 'final-letter';
+    span.style.setProperty('--i', i);
+    span.textContent = letter;
+    lettersEl.appendChild(span);
+  });
   container.appendChild(lettersEl);
 
   const finishButton = document.createElement('button');
