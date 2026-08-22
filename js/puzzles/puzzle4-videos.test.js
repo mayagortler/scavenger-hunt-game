@@ -8,23 +8,24 @@ import {
   cardFrontImage,
   createVideoCards,
   isVideoOrderSolved,
+  getEmbedInfo,
 } from './puzzle4-videos.js';
 import { shuffle } from '../shuffle.js';
 
-test('VIDEO_ORDER has the 6 links from the spec in order', () => {
+test('VIDEO_ORDER has the 6 updated YouTube links in order', () => {
   assert.equal(VIDEO_ORDER.length, 6);
-  assert.equal(VIDEO_ORDER[0], 'https://share.google/nGTqH8IsAVXb0NTNg');
-  assert.equal(VIDEO_ORDER[5], 'https://vt.tiktok.com/ZSVUp7Gb8/');
+  assert.equal(VIDEO_ORDER[0], 'https://www.youtube.com/watch?v=ooOELrGMn14');
+  assert.equal(VIDEO_ORDER[5], 'https://www.youtube.com/shorts/w03oC4C8IkY');
 });
 
-test('extractYouTubeId handles shorts and youtu.be formats', () => {
+test('extractYouTubeId handles shorts, youtu.be, and watch?v= formats', () => {
   assert.equal(extractYouTubeId('https://youtube.com/shorts/qpmFnUTkpL0?si=abc'), 'qpmFnUTkpL0');
   assert.equal(extractYouTubeId('https://youtu.be/fWKB8zdVM-U?si=xyz'), 'fWKB8zdVM-U');
+  assert.equal(extractYouTubeId('https://www.youtube.com/watch?v=ooOELrGMn14'), 'ooOELrGMn14');
 });
 
 test('extractYouTubeId returns null for non-YouTube links', () => {
-  assert.equal(extractYouTubeId('https://vt.tiktok.com/ZSVfQhqqe/'), null);
-  assert.equal(extractYouTubeId('https://share.google/nGTqH8IsAVXb0NTNg'), null);
+  assert.equal(extractYouTubeId('https://example.com/not-a-video'), null);
 });
 
 test('youtubeThumbnailUrl builds the hqdefault thumbnail URL', () => {
@@ -33,7 +34,7 @@ test('youtubeThumbnailUrl builds the hqdefault thumbnail URL', () => {
 
 test('cardFrontImage returns a thumbnail for YouTube links and null otherwise', () => {
   assert.equal(cardFrontImage('https://youtu.be/fWKB8zdVM-U'), 'https://img.youtube.com/vi/fWKB8zdVM-U/hqdefault.jpg');
-  assert.equal(cardFrontImage('https://vt.tiktok.com/ZSVfQhqqe/'), null);
+  assert.equal(cardFrontImage('https://example.com/not-a-video'), null);
 });
 
 test('createVideoCards builds 6 unplaced cards matching VIDEO_ORDER', () => {
@@ -52,6 +53,16 @@ test('isVideoOrderSolved requires every card correctly placed AND flipped', () =
   assert.equal(isVideoOrderSolved(cards), true);
   cards[0].currentSlot = 5;
   assert.equal(isVideoOrderSolved(cards), false);
+});
+
+test('getEmbedInfo resolves every link in VIDEO_ORDER to a playable YouTube id', () => {
+  for (const url of VIDEO_ORDER) {
+    assert.deepEqual(getEmbedInfo(url), { type: 'youtube', id: extractYouTubeId(url) });
+  }
+});
+
+test('getEmbedInfo returns null for a URL it has no way to embed', () => {
+  assert.equal(getEmbedInfo('https://example.com/not-a-video'), null);
 });
 
 test('shuffling the cards scrambles tray order without touching correctSlot', () => {

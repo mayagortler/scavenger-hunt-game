@@ -206,6 +206,46 @@ body { margin: 0; font-family: system-ui, sans-serif; direction: rtl; }
 .video-grid.solved { gap: 0; outline: 3px solid #4caf50; }
 .video-grid.solved .video-slot { border: none; }
 
+/* Video playback modal: clicking a card plays it in the page instead of
+   opening an external tab. */
+.video-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1500;
+  background: rgba(0, 0, 0, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.video-modal {
+  position: relative;
+  background: #000;
+  border-radius: 8px;
+  padding: 8px;
+  max-width: 90vw;
+  max-height: 90vh;
+  display: flex;
+}
+.video-modal-close {
+  position: absolute;
+  top: -16px;
+  left: -16px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: #fff;
+  color: #222;
+  font-size: 16px;
+  cursor: pointer;
+  z-index: 1;
+}
+.video-modal-iframe {
+  width: min(80vw, 640px);
+  height: min(45vw, 360px);
+  border: none;
+}
+
 /* Shared puzzle buttons */
 .puzzle-action-button, .puzzle-continue-button {
   display: block;

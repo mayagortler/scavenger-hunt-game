@@ -2,13 +2,15 @@
 import { renderSpeechBubble } from '../speechBubble.js';
 import { shuffle } from '../shuffle.js';
 
+// Updated links (2026-08-23): the two originally-TikTok videos now have
+// YouTube mirrors, so all six are plain YouTube links.
 export const VIDEO_ORDER = [
-  'https://share.google/nGTqH8IsAVXb0NTNg',
-  'https://youtube.com/shorts/qpmFnUTkpL0?si=f15IZDMVppvTMd3j',
-  'https://youtu.be/fWKB8zdVM-U?si=0T-qg7zOKwTDMK7H',
-  'https://youtu.be/9sh2SwfuO44?si=l0Dx3XoRrD5fVpBt',
-  'https://vt.tiktok.com/ZSVfQhqqe/',
-  'https://vt.tiktok.com/ZSVUp7Gb8/',
+  'https://www.youtube.com/watch?v=ooOELrGMn14',
+  'https://www.youtube.com/shorts/qpmFnUTkpL0',
+  'https://www.youtube.com/watch?v=fWKB8zdVM-U',
+  'https://www.youtube.com/watch?v=9sh2SwfuO44',
+  'https://www.youtube.com/shorts/4vLgHdSVBdI',
+  'https://www.youtube.com/shorts/w03oC4C8IkY',
 ];
 
 export function extractYouTubeId(url) {
@@ -30,6 +32,12 @@ export function cardFrontImage(url) {
   return id ? youtubeThumbnailUrl(id) : null;
 }
 
+export function getEmbedInfo(url) {
+  const youtubeId = extractYouTubeId(url);
+  if (youtubeId) return { type: 'youtube', id: youtubeId };
+  return null;
+}
+
 export function createVideoCards() {
   return VIDEO_ORDER.map((url, index) => ({ id: index, url, correctSlot: index, currentSlot: null, flipped: false }));
 }
@@ -42,6 +50,40 @@ const INTRO_TEXT =
   'בנות, חיכיתם כל השנה לחידה מספר ארבע. בחידה הזו אתם צריכות לסדר את הסרטונים בסדר כרונולוגי. כרונולוגי! ' +
   'תעשו את זה לאט, בסדר, תעשו את זה מהר, גם בסדר, עד 12, תעשו את זה אחרי 12 אני לא פה. ' +
   'אם תעשו את זה נכון, תגלו את הרמז לתחנה הבאה שלכם, באספקה מיידית. לא מחר, לא עוד שבוע, אספקה מיידית. בהצלחה!';
+
+function openVideoModal(url) {
+  const info = getEmbedInfo(url);
+  if (!info) {
+    // Nothing we know how to embed — fall back to opening it externally.
+    window.open(url, '_blank', 'noopener');
+    return;
+  }
+
+  const overlay = document.createElement('div');
+  overlay.className = 'video-modal-overlay';
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) overlay.remove();
+  });
+
+  const modal = document.createElement('div');
+  modal.className = 'video-modal';
+
+  const closeButton = document.createElement('button');
+  closeButton.className = 'video-modal-close';
+  closeButton.textContent = '✕';
+  closeButton.addEventListener('click', () => overlay.remove());
+  modal.appendChild(closeButton);
+
+  const iframe = document.createElement('iframe');
+  iframe.className = 'video-modal-iframe';
+  iframe.src = `https://www.youtube.com/embed/${info.id}?autoplay=1`;
+  iframe.allow = 'autoplay; encrypted-media; picture-in-picture';
+  iframe.allowFullscreen = true;
+  modal.appendChild(iframe);
+
+  overlay.appendChild(modal);
+  document.body.appendChild(overlay);
+}
 
 const GRID_COLS = 3;
 const GRID_ROWS = 2;
@@ -131,7 +173,7 @@ export function initPuzzle4(container, { onSolved }) {
         // real pointer clicks always report detail >= 1. This just keeps test-triggered
         // .click() calls from opening a new tab during automated checks.
         if (e.detail === 0) return;
-        window.open(card.url, '_blank', 'noopener');
+        openVideoModal(card.url);
       });
       return cardEl;
     }
