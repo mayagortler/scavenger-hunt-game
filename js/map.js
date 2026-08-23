@@ -19,17 +19,39 @@ export function resolveSearchQuery(query) {
   return SEARCH_ALIASES[query.trim()] || query;
 }
 
-// Free, no-API-key place search via OpenStreetMap's Nominatim — consistent with
-// the map tiles themselves. Exported (pure fetch wrapper) so it's easy to test
-// in isolation from the DOM control that calls it.
-export async function searchPlace(query) {
+async function fetchNominatim(query) {
   // accept-language biases Nominatim's own multilingual name matching toward
   // Hebrew queries; limit=5 (not 1) so an ambiguous query can be resolved by
   // the group picking the right one, rather than silently taking whichever
   // result happened to rank first internally.
-  const url = `https://nominatim.openstreetmap.org/search?format=json&limit=5&accept-language=he&q=${encodeURIComponent(resolveSearchQuery(query))}`;
+  const url = `https://nominatim.openstreetmap.org/search?format=json&limit=5&accept-language=he&q=${encodeURIComponent(query)}`;
   const response = await fetch(url);
   return response.json();
+}
+
+// Merges two result lists, keeping `primary`'s order first and dropping any
+// `extra` entry that's already present (by Nominatim's own place_id, falling
+// back to the display name if that's ever missing).
+export function mergeSearchResults(primary, extra) {
+  const seen = new Set(primary.map((r) => r.place_id ?? r.display_name));
+  return [...primary, ...extra.filter((r) => !seen.has(r.place_id ?? r.display_name))];
+}
+
+// Free, no-API-key place search via OpenStreetMap's Nominatim — consistent with
+// the map tiles themselves. Exported (pure fetch wrapper) so it's easy to test
+// in isolation from the DOM control that calls it.
+export async function searchPlace(query) {
+  const resolvedQuery = resolveSearchQuery(query);
+  if (resolvedQuery === query) return fetchNominatim(query);
+
+  // A known-tricky query (e.g. "מטאורה") gets both the corrected search
+  // AND the group's literal query, so the place they actually need shows up
+  // without hiding whatever else Nominatim would have returned on its own.
+  const [aliasResults, rawResults] = await Promise.all([
+    fetchNominatim(resolvedQuery),
+    fetchNominatim(query),
+  ]);
+  return mergeSearchResults(aliasResults, rawResults);
 }
 
 function addSearchControl(map) {

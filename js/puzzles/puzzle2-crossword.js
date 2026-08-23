@@ -66,6 +66,17 @@ export function getClueNumberForRow(row) {
   return numbered ? numbered.clueNumber : null;
 }
 
+// Where a given clue's word starts, so finishing one clue can jump straight
+// to the first cell of the next one.
+export function getClueStartCell(grid, clueNumber) {
+  for (let r = 0; r < grid.length; r++) {
+    for (let c = 0; c < grid[r].length; c++) {
+      if (grid[r][c] && grid[r][c].clueNumber === clueNumber) return { row: r, col: c };
+    }
+  }
+  return null;
+}
+
 // Column 8 is the letter every one of the 8 across-words crosses through, and
 // reading it top-to-bottom spells the final answer "בן גוריון" — the only
 // column that should be marked solved, not the whole grid (verified by
@@ -103,7 +114,7 @@ export function initPuzzle2(container, { onSolved }) {
 
   function renderPuzzle() {
     let userGrid = createEmptyUserGrid(CROSSWORD_GRID);
-    let advanced = false;
+    let markedSolved = false;
 
     const wrapper = document.createElement('div');
     wrapper.className = 'crossword-wrapper';
@@ -138,6 +149,23 @@ export function initPuzzle2(container, { onSolved }) {
     // just these, not the whole grid.
     const finalColumnCellEls = [];
 
+    // Shared by every cell's input/backspace handler so the column-highlight
+    // and "puzzle solved" checks stay in one place regardless of which
+    // direction the group is typing.
+    function updateProgress() {
+      const columnSolved = isFinalColumnSolved(userGrid, CROSSWORD_GRID);
+      finalColumnCellEls.forEach((el) => el.classList.toggle('solved', columnSolved));
+
+      const solved = isCrosswordSolved(userGrid, CROSSWORD_GRID);
+      if (solved && !markedSolved) {
+        markedSolved = true;
+        // Marks progress (map pin turns green) without leaving this screen —
+        // the group can keep looking at the solved column, and returns to the
+        // map themselves via the persistent map button whenever they're ready.
+        onSolved?.();
+      }
+    }
+
     CROSSWORD_GRID.forEach((row, r) => {
       const rowClueNumber = getClueNumberForRow(row);
       row.forEach((cell, c) => {
@@ -165,18 +193,34 @@ export function initPuzzle2(container, { onSolved }) {
           input.value = userGrid[r][c];
 
           if (input.value) {
-            // Auto-advance to the next cell of the same word, if any.
             const nextInput = inputEls[r][c + 1];
-            if (nextInput) nextInput.focus();
+            if (nextInput) {
+              // Auto-advance to the next cell of the same word.
+              nextInput.focus();
+            } else {
+              // Last letter of this clue — jump to the first cell of the next
+              // one instead of leaving focus stranded at the end of the row.
+              const nextClueStart = getClueStartCell(CROSSWORD_GRID, rowClueNumber + 1);
+              if (nextClueStart) inputEls[nextClueStart.row][nextClueStart.col].focus();
+            }
           }
 
-          const columnSolved = isFinalColumnSolved(userGrid, CROSSWORD_GRID);
-          finalColumnCellEls.forEach((el) => el.classList.toggle('solved', columnSolved));
-
-          const solved = isCrosswordSolved(userGrid, CROSSWORD_GRID);
-          if (solved && !advanced) {
-            advanced = true;
-            onSolved?.();
+          updateProgress();
+        });
+        input.addEventListener('keydown', (e) => {
+          // Backspace on an already-empty cell clears and refocuses the
+          // previous cell of this word, so the group can keep deleting
+          // backward across cells instead of getting stuck once one cell
+          // is empty (matches the forward auto-advance on typing).
+          if (e.key === 'Backspace' && !input.value) {
+            const prevInput = inputEls[r][c - 1];
+            if (prevInput) {
+              e.preventDefault();
+              userGrid = setCellLetter(userGrid, r, c - 1, '');
+              prevInput.value = '';
+              prevInput.focus();
+              updateProgress();
+            }
           }
         });
         cellEl.appendChild(input);

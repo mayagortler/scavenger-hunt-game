@@ -127,10 +127,16 @@ function renderFinalScreenIfReady() {
 // --- Puzzle screens (definitions only — invoked by ensureInitialized) ---
 const puzzleInitializers = {
   puzzle1: (el) => initPuzzle1(el, { onSolved: () => completePuzzle('puzzle1') }),
-  puzzle2: (el) => initPuzzle2(el, { onSolved: () => completePuzzle('puzzle2') }),
+  // Crossword: solving marks progress (map pin turns green) but stays on this
+  // screen instead of jumping to the map — the group returns via the
+  // persistent map button whenever they're ready, not the instant they finish.
+  puzzle2: (el) => initPuzzle2(el, { onSolved: () => onPuzzleSolved('puzzle2') }),
   puzzle3: (el) => initPuzzle3(el, { onSolved: () => completePuzzle('puzzle3') }),
   puzzle4: (el) => initPuzzle4(el, { onSolved: () => completePuzzle('puzzle4') }),
-  puzzle5: (el) => initPuzzle5(el, { onContinue: () => completePuzzle('puzzle5') }),
+  // Riddle: reaching the last image marks progress silently; the forward
+  // arrow itself no longer navigates (see puzzle5-riddle.js) — same
+  // "stay on screen, leave via the map button" pattern as the crossword.
+  puzzle5: (el) => initPuzzle5(el, { onContinue: () => onPuzzleSolved('puzzle5') }),
 };
 
 // --- Map screen (created first, so no puzzle failure can prevent it) ---

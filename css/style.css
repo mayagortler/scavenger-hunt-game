@@ -1,33 +1,39 @@
 /* ===== Design tokens =====
-   Direction: a field case-file / investigation-dossier look — warm paper,
-   flat ink borders, a single stamp-red accent, hard offset "paper stack"
-   shadows instead of soft glow/blur. Deliberately not the dark-gradient +
-   gold-glow "fantasy game" look, which is the generic AI default for an
-   "adventure/treasure hunt" brief the same way purple gradients are the
-   generic default for a SaaS product. */
+   Direction: a dim, warm "bachelor-party bar" mood — near-black charcoal,
+   whiskey-amber accent, parchment-cream text/borders — built on the same
+   flat-color, hard-offset-shadow, stamp-animation language as before (no
+   soft glow/blur, no purple-blue AI gradient, single accent color). This is
+   a token recolor of that structure, not a rebuild. */
 :root {
   --font-display: 'Suez One', 'Rubik', serif;
   --font-body: 'Rubik', system-ui, sans-serif;
 
-  --color-paper: #ede1c8;
-  --color-card: #f8f1e0;
-  --color-card-2: #fffaf0;
-  --color-ink: #241d13;
-  --color-ink-soft: #5c5140;
+  --color-paper: #15110d;
+  --color-card: #221b15;
+  --color-card-2: #2e251c;
+  /* True near-black, decoupled from --color-ink: used where a role needs to
+     stay dark regardless of ink's light-text value below (blocked crossword
+     squares, photo letterboxing, the jigsaw "#" badge). */
+  --color-void: #0a0806;
+  --color-ink: #efe2cd;
+  --color-ink-soft: #b7a68a;
 
-  --color-accent: #963c2f;
-  --color-accent-dark: #742d22;
-  --color-success: #3f6b3a;
-  --color-success-dark: #2c4d28;
-  --color-danger: #963c2f;
+  --color-accent: #c9922f;
+  --color-accent-dark: #9c701f;
+  /* Dark text for anything sitting on the light/amber buttons below. */
+  --color-on-accent: #201603;
+
+  --color-success: #4f9d63;
+  --color-success-dark: #316b3f;
+  --color-danger: #c9503b;
 
   --radius-sm: 4px;
   --radius-md: 6px;
 
-  --shadow-card-sm: 2px 2px 0 rgba(36, 29, 19, 0.2);
-  --shadow-card: 4px 4px 0 rgba(36, 29, 19, 0.22);
-  --shadow-card-lg: 6px 6px 0 rgba(36, 29, 19, 0.22);
-  --shadow-inset: inset 0 1px 3px rgba(36, 29, 19, 0.18);
+  --shadow-card-sm: 2px 2px 0 rgba(0, 0, 0, 0.45);
+  --shadow-card: 4px 4px 0 rgba(0, 0, 0, 0.5);
+  --shadow-card-lg: 6px 6px 0 rgba(0, 0, 0, 0.55);
+  --shadow-inset: inset 0 1px 3px rgba(0, 0, 0, 0.45);
 
   --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
   --dur-fast: 120ms;
@@ -43,12 +49,12 @@ body {
   direction: rtl;
   color: var(--color-ink);
   background-color: var(--color-paper);
-  /* A faint diagonal hatch reads as paper texture without a single gradient
-     blob — flat and specific rather than the generic AI glow-mesh backdrop. */
+  /* A faint diagonal hatch reads as leather/felt texture without a single
+     gradient blob — flat and specific rather than a generic AI glow-mesh. */
   background-image: repeating-linear-gradient(
     45deg,
-    rgba(36, 29, 19, 0.028) 0,
-    rgba(36, 29, 19, 0.028) 1px,
+    rgba(239, 226, 205, 0.035) 0,
+    rgba(239, 226, 205, 0.035) 1px,
     transparent 1px,
     transparent 11px
   );
@@ -132,10 +138,10 @@ button { font-family: inherit; }
 }
 
 /* Generic button baseline — covers the couple of buttons puzzle modules
-   create without a specific class (the jigsaw "check" button, the riddle's
-   continue button), so nothing renders as a bare unstyled browser button.
-   Flat fill + a hard offset shadow that compresses on press, like a stamped
-   badge being pushed down, rather than a soft gradient pill lifting up. */
+   create without a specific class (the jigsaw "check" button, etc.), so
+   nothing renders as a bare unstyled browser button. Flat fill + a hard
+   offset shadow that compresses on press, like a stamped badge being pushed
+   down, rather than a soft gradient pill lifting up. */
 button {
   padding: 11px 24px;
   font-size: 16px;
@@ -143,14 +149,14 @@ button {
   border: 2px solid var(--color-ink);
   border-radius: var(--radius-sm);
   background: var(--color-accent);
-  color: var(--color-card-2);
+  color: var(--color-on-accent);
   cursor: pointer;
   box-shadow: var(--shadow-card);
   transition: transform var(--dur-fast) var(--ease-standard), box-shadow var(--dur-fast) var(--ease-standard),
     opacity var(--dur-fast) var(--ease-standard);
 }
-button:hover { transform: translate(-1px, -1px); box-shadow: 5px 5px 0 rgba(36, 29, 19, 0.24); }
-button:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 rgba(36, 29, 19, 0.2); }
+button:hover { transform: translate(-1px, -1px); box-shadow: 5px 5px 0 rgba(0, 0, 0, 0.55); }
+button:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 rgba(0, 0, 0, 0.45); }
 button:disabled { opacity: 0.45; cursor: default; box-shadow: none; transform: none; }
 button:focus-visible { outline: 3px solid var(--color-ink); outline-offset: 2px; }
 
@@ -161,11 +167,11 @@ button:focus-visible { outline: 3px solid var(--color-ink); outline-offset: 2px;
   z-index: 1000;
   padding: 11px 20px;
   font-size: 15px;
-  background: var(--color-ink);
-  color: var(--color-card-2);
+  background: var(--color-card-2);
+  color: var(--color-ink);
   border-color: var(--color-ink);
 }
-.map-open-button:hover, .map-close-button:hover { background: #362b1c; }
+.map-open-button:hover, .map-close-button:hover { background: #3d3226; }
 
 /* Dev-only screen navigator — hidden by default, toggled with Ctrl+Shift+D.
    Never meant to be visible during the live event; the red tint is
@@ -198,12 +204,13 @@ button:focus-visible { outline: 3px solid var(--color-ink); outline-offset: 2px;
    opaque panel behind it hiding part of the photo. position:fixed so it
    covers the viewport regardless of the (unsized) dialogue wrapper div each
    puzzle renders it into, rather than depending on a height:100% chain
-   through that parent. */
+   through that parent. Backdrop uses --color-void (not --color-ink, which is
+   now a light text color) so the letterboxing stays black regardless of theme. */
 .speech-fullscreen {
   position: fixed;
   inset: 0;
   z-index: 500;
-  background: var(--color-ink);
+  background: var(--color-void);
 }
 .speech-character-fullscreen {
   display: block;
@@ -242,10 +249,12 @@ button:focus-visible { outline: 3px solid var(--color-ink); outline-offset: 2px;
 
 /* Station pins: a real map-pin shape (SVG via L.divIcon), not a plain dot —
    clearer and more findable at a glance. Hard-offset drop-shadow to match
-   the rest of the page's shadow language instead of Leaflet's default blur. */
+   the rest of the page's shadow language instead of Leaflet's default blur.
+   Left dark regardless of theme (map.js draws the pin's own stroke/dot in a
+   fixed dark ink) since the underlying OpenStreetMap tiles stay light. */
 .station-pin {
   cursor: pointer;
-  filter: drop-shadow(3px 3px 0 rgba(36, 29, 19, 0.35));
+  filter: drop-shadow(3px 3px 0 rgba(0, 0, 0, 0.45));
 }
 
 /* Map search box: type a place name and jump there (fitBounds only — never
@@ -266,10 +275,12 @@ button:focus-visible { outline: 3px solid var(--color-ink); outline-offset: 2px;
   font-size: 14px;
   padding: 7px 10px;
   width: 160px;
-  border: 1.5px solid rgba(36, 29, 19, 0.3);
+  border: 1.5px solid rgba(239, 226, 205, 0.3);
   border-radius: var(--radius-sm);
   direction: rtl;
   text-align: right;
+  color: var(--color-ink);
+  background: var(--color-card);
   transition: border-color var(--dur-fast) var(--ease-standard);
 }
 .map-search-input:focus { outline: none; border-color: var(--color-accent); }
@@ -292,13 +303,15 @@ button:focus-visible { outline: 3px solid var(--color-ink); outline-offset: 2px;
   font-size: 13px;
   line-height: 1.4;
   cursor: pointer;
-  border-bottom: 1px solid rgba(36, 29, 19, 0.15);
+  color: var(--color-ink);
+  border-bottom: 1px solid rgba(239, 226, 205, 0.15);
 }
-.map-search-results li:hover { background: rgba(150, 60, 47, 0.12); }
+.map-search-results li:hover { background: rgba(201, 146, 47, 0.18); }
 .map-search-results[hidden] { display: none; }
 
 /* Letter-station popup: the "box with one letter" from the source doc,
-   styled like a rubber-stamped case mark. */
+   styled like a rubber-stamped case mark. Leaflet's own popup chrome
+   defaults to a plain white card, so it's re-themed here to match. */
 .letter-box {
   font-family: var(--font-display);
   font-size: 58px;
@@ -311,10 +324,16 @@ button:focus-visible { outline: 3px solid var(--color-ink); outline-offset: 2px;
   animation: stamp 400ms var(--ease-standard);
 }
 .letter-popup .leaflet-popup-content { margin: 16px 20px; }
-.letter-popup .leaflet-popup-content-wrapper { border-radius: var(--radius-md); border: 2px solid var(--color-ink); box-shadow: var(--shadow-card); }
+.letter-popup .leaflet-popup-content-wrapper {
+  background: var(--color-card);
+  border-radius: var(--radius-md);
+  border: 2px solid var(--color-ink);
+  box-shadow: var(--shadow-card);
+}
+.letter-popup .leaflet-popup-tip { background: var(--color-card); }
 
 /* Shared "case file page" card treatment for each puzzle's main content
-   block: flat paper, ink border, hard offset shadow — no blur, no glow. */
+   block: flat panel, ink border, hard offset shadow — no blur, no glow. */
 .jigsaw-puzzle, .crossword-wrapper, .bins-wrapper, .riddle-images {
   background: var(--color-card);
   border: 2px solid var(--color-ink);
@@ -328,7 +347,7 @@ button:focus-visible { outline: 3px solid var(--color-ink); outline-offset: 2px;
 .jigsaw-frame {
   border: 3px solid var(--color-ink);
   border-radius: var(--radius-sm);
-  background: rgba(36, 29, 19, 0.05);
+  background: rgba(0, 0, 0, 0.25);
   box-shadow: var(--shadow-inset);
 }
 /* Cell/piece guides are drawn with outline rather than border so they take no
@@ -337,11 +356,12 @@ button:focus-visible { outline: 3px solid var(--color-ink); outline-offset: 2px;
 .jigsaw-slot {
   width: 60px;
   height: 60px;
-  outline: 1px dashed rgba(36, 29, 19, 0.35);
+  outline: 1px dashed rgba(239, 226, 205, 0.35);
   outline-offset: -1px;
   transition: background var(--dur-fast) var(--ease-standard);
 }
-.jigsaw-slot:hover { background: rgba(150, 60, 47, 0.12); }
+.jigsaw-slot:hover { background: rgba(201, 146, 47, 0.15); }
+.jigsaw-slot.selectable-target { background: rgba(201, 146, 47, 0.2); }
 .jigsaw-tray {
   display: flex;
   flex-wrap: wrap;
@@ -349,7 +369,7 @@ button:focus-visible { outline: 3px solid var(--color-ink); outline-offset: 2px;
   width: 320px;
   gap: 4px;
   padding: 10px;
-  background: rgba(36, 29, 19, 0.04);
+  background: rgba(0, 0, 0, 0.2);
   border-radius: var(--radius-sm);
 }
 .jigsaw-piece {
@@ -357,15 +377,22 @@ button:focus-visible { outline: 3px solid var(--color-ink); outline-offset: 2px;
   height: 60px;
   background-size: 300px 300px;
   cursor: grab;
-  outline: 1px solid rgba(36, 29, 19, 0.3);
+  outline: 1px solid rgba(239, 226, 205, 0.4);
   outline-offset: -1px;
   transition: transform var(--dur-fast) var(--ease-standard), box-shadow var(--dur-fast) var(--ease-standard);
 }
-.jigsaw-piece:hover { transform: translate(-1px, -1px); box-shadow: 2px 2px 0 rgba(36, 29, 19, 0.3); z-index: 2; position: relative; }
+.jigsaw-piece:hover { transform: translate(-1px, -1px); box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.5); z-index: 2; position: relative; }
 .jigsaw-piece:active { cursor: grabbing; }
 /* Placed pieces drop their outline/shadow so the assembled picture is seamless. */
 .jigsaw-slot .jigsaw-piece { outline: none; box-shadow: none; }
 .jigsaw-slot .jigsaw-piece:hover { transform: none; }
+/* Click-to-place: a selected piece (in the tray or already on the board) gets
+   a bright accent ring so it's clear which piece the next slot-click will move. */
+.jigsaw-piece.selected {
+  outline: 3px solid var(--color-accent);
+  z-index: 3;
+  position: relative;
+}
 .jigsaw-answers {
   text-align: center;
   margin-top: 24px;
@@ -379,8 +406,9 @@ button:focus-visible { outline: 3px solid var(--color-ink); outline-offset: 2px;
    the "#" markers read left-to-right rather than following default RTL order. */
 .jigsaw-answers-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; direction: ltr; }
 .jigsaw-answer-item { display: flex; align-items: center; gap: 6px; }
-/* A plain white "#" would vanish against the card's light paper background,
-   so it sits on a small ink badge — still reads as bold and white, just legible. */
+/* A plain white "#" would vanish against a light card background, but this
+   card is dark now — kept on a true-black badge (--color-void, not --color-ink,
+   which is a light text color here) so it stays a bold, legible chip either way. */
 .jigsaw-hash {
   display: inline-flex;
   align-items: center;
@@ -391,16 +419,17 @@ button:focus-visible { outline: 3px solid var(--color-ink); outline-offset: 2px;
   font-size: 20px;
   font-weight: 800;
   color: #fff;
-  background: var(--color-ink);
+  background: var(--color-void);
   border-radius: var(--radius-sm);
 }
 .jigsaw-answers input {
   width: 120px;
   padding: 9px 12px;
-  border: 2px solid rgba(36, 29, 19, 0.3);
+  border: 2px solid rgba(239, 226, 205, 0.3);
   border-radius: var(--radius-sm);
   font-family: inherit;
   font-size: 15px;
+  color: var(--color-ink);
   background: var(--color-card-2);
   transition: border-color var(--dur-fast) var(--ease-standard);
 }
@@ -421,8 +450,10 @@ button:focus-visible { outline: 3px solid var(--color-ink); outline-offset: 2px;
 /* Puzzle 2: crossword */
 .crossword-wrapper { display: flex; gap: 28px; justify-content: center; align-items: flex-start; flex-wrap: wrap; margin: 24px auto; padding: 28px; max-width: 900px; }
 .crossword-grid { border-radius: var(--radius-sm); overflow: hidden; box-shadow: var(--shadow-inset); }
-.crossword-cell { width: 36px; height: 36px; border: 1px solid rgba(36, 29, 19, 0.55); position: relative; background: var(--color-card-2); cursor: pointer; }
-.crossword-cell.blocked { background: var(--color-ink); border-color: var(--color-ink); }
+.crossword-cell { width: 36px; height: 36px; border: 1px solid rgba(239, 226, 205, 0.35); position: relative; background: var(--color-card-2); cursor: pointer; }
+/* Blocked squares stay true-black (--color-void) regardless of theme — a
+   crossword's blocked cells read as solid voids, not as "ink-colored text". */
+.crossword-cell.blocked { background: var(--color-void); border-color: var(--color-void); }
 .crossword-input {
   width: 100%;
   height: 100%;
@@ -435,7 +466,7 @@ button:focus-visible { outline: 3px solid var(--color-ink); outline-offset: 2px;
   color: var(--color-ink);
   transition: background var(--dur-fast) var(--ease-standard);
 }
-.crossword-input:focus { outline: none; background: rgba(150, 60, 47, 0.18); }
+.crossword-input:focus { outline: none; background: rgba(201, 146, 47, 0.22); }
 .crossword-clue-number {
   /* Hit area, not just glyph size — a bare 9px-font digit measures ~5x10px,
      which is nearly impossible to click reliably with a real mouse. */
@@ -453,7 +484,7 @@ button:focus-visible { outline: 3px solid var(--color-ink); outline-offset: 2px;
   cursor: pointer;
   z-index: 1;
 }
-.crossword-clue-text { max-width: 260px; font-size: 16px; line-height: 1.5; animation: fadeIn var(--dur-base) var(--ease-standard); }
+.crossword-clue-text { max-width: 260px; font-size: 16px; line-height: 1.5; color: var(--color-ink); animation: fadeIn var(--dur-base) var(--ease-standard); }
 .crossword-clue-image { max-width: 240px; display: block; margin-top: 10px; border: 2px solid var(--color-ink); border-radius: var(--radius-sm); }
 /* Only the final-answer column (col 8, "בן גוריון" read top-to-bottom) turns
    green on solve — not the whole grid, which would bury the actual answer. */
@@ -466,7 +497,9 @@ button:focus-visible { outline: 3px solid var(--color-ink); outline-offset: 2px;
   width: 64px;
   height: 64px;
   background-size: cover;
-  border: 2px solid var(--color-card-2);
+  /* A bright ring so each bin still pops against a busy real photo,
+     regardless of the surrounding UI theme. */
+  border: 2px solid var(--color-ink);
   border-radius: 50%;
   color: #fff;
   font-weight: 800;
@@ -475,7 +508,7 @@ button:focus-visible { outline: 3px solid var(--color-ink); outline-offset: 2px;
   box-shadow: var(--shadow-card-sm);
   transition: transform var(--dur-fast) var(--ease-standard), box-shadow var(--dur-fast) var(--ease-standard);
 }
-.bin:hover { transform: translate(-1px, -1px) scale(1.05); box-shadow: 3px 3px 0 rgba(36, 29, 19, 0.3); }
+.bin:hover { transform: translate(-1px, -1px) scale(1.05); box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.5); }
 .bin:active { transform: scale(0.95); }
 .bins-text {
   display: block;
@@ -485,7 +518,8 @@ button:focus-visible { outline: 3px solid var(--color-ink); outline-offset: 2px;
   text-align: center;
   font-size: 22px;
   font-weight: 600;
-  border: 2px solid rgba(36, 29, 19, 0.3);
+  color: var(--color-ink);
+  border: 2px solid rgba(239, 226, 205, 0.3);
   border-radius: var(--radius-sm);
   background: var(--color-card-2);
   transition: background var(--dur-base) var(--ease-standard), color var(--dur-base) var(--ease-standard);
@@ -509,13 +543,13 @@ button:focus-visible { outline: 3px solid var(--color-ink); outline-offset: 2px;
 .video-slot {
   width: 120px;
   height: 180px;
-  border: 2px dashed rgba(36, 29, 19, 0.4);
+  border: 2px dashed rgba(239, 226, 205, 0.4);
   border-radius: var(--radius-sm);
   position: relative;
   transition: border-color var(--dur-fast) var(--ease-standard), background var(--dur-fast) var(--ease-standard);
 }
-.video-slot:hover { border-color: var(--color-accent); background: rgba(150, 60, 47, 0.08); }
-.video-slot-number { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: 700; color: rgba(36, 29, 19, 0.35); }
+.video-slot:hover { border-color: var(--color-accent); background: rgba(201, 146, 47, 0.1); }
+.video-slot-number { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: 700; color: rgba(239, 226, 205, 0.35); }
 .video-tray {
   display: flex;
   flex-wrap: wrap;
@@ -524,8 +558,8 @@ button:focus-visible { outline: 3px solid var(--color-ink); outline-offset: 2px;
   max-width: 92vw;
   margin: 16px auto;
   padding: 14px;
-  background: rgba(237, 225, 200, 0.6);
-  border: 2px solid rgba(36, 29, 19, 0.3);
+  background: rgba(0, 0, 0, 0.25);
+  border: 2px solid rgba(239, 226, 205, 0.3);
   border-radius: var(--radius-md);
 }
 .video-card { width: 120px; height: 180px; cursor: grab; border: 2px solid var(--color-ink); border-radius: var(--radius-sm); overflow: hidden; box-shadow: var(--shadow-card-sm); transition: transform var(--dur-fast) var(--ease-standard), box-shadow var(--dur-fast) var(--ease-standard); }
@@ -543,7 +577,7 @@ button:focus-visible { outline: 3px solid var(--color-ink); outline-offset: 2px;
   position: fixed;
   inset: 0;
   z-index: 1500;
-  background: rgba(20, 15, 8, 0.85);
+  background: rgba(10, 8, 6, 0.88);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -552,7 +586,7 @@ button:focus-visible { outline: 3px solid var(--color-ink); outline-offset: 2px;
 .video-modal {
   position: relative;
   background: #000;
-  border: 3px solid var(--color-card-2);
+  border: 3px solid var(--color-ink);
   border-radius: var(--radius-md);
   padding: 8px;
   max-width: 90vw;
@@ -572,7 +606,7 @@ button:focus-visible { outline: 3px solid var(--color-ink); outline-offset: 2px;
   font-size: 16px;
   z-index: 1;
 }
-.video-modal-close:hover { background: #fff; }
+.video-modal-close:hover { background: #3d3226; }
 .video-modal-iframe { width: min(80vw, 640px); height: min(45vw, 360px); border: none; }
 
 /* Shared puzzle buttons */

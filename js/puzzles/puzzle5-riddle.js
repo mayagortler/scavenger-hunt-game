@@ -32,6 +32,7 @@ export function initPuzzle5(container, { onContinue }) {
 
   function renderRiddle() {
     let index = 0;
+    let markedSeen = false;
 
     const wrapper = document.createElement('div');
     wrapper.className = 'riddle-images';
@@ -44,8 +45,9 @@ export function initPuzzle5(container, { onContinue }) {
     const img = document.createElement('img');
     img.className = 'riddle-image';
 
-    // Linear, non-circular navigation: forward past the last image finishes
-    // the riddle (no separate "solved" button — this arrow doubles as it).
+    // Linear, non-circular navigation: the last image is a dead end for
+    // "forward" — the group goes back through the images or leaves via the
+    // persistent map button, never via this arrow.
     const nextButton = document.createElement('button');
     nextButton.className = 'riddle-nav-button';
     nextButton.textContent = '←';
@@ -54,6 +56,14 @@ export function initPuzzle5(container, { onContinue }) {
     function render() {
       img.src = RIDDLE_IMAGES[index];
       prevButton.disabled = index === 0;
+      const atEnd = index === RIDDLE_IMAGES.length - 1;
+      nextButton.disabled = atEnd;
+      if (atEnd && !markedSeen) {
+        markedSeen = true;
+        // Marks progress (map pin turns green) once the group has viewed
+        // every image — silently, without navigating anywhere.
+        onContinue?.();
+      }
     }
 
     prevButton.addEventListener('click', () => {
@@ -66,8 +76,6 @@ export function initPuzzle5(container, { onContinue }) {
       if (index < RIDDLE_IMAGES.length - 1) {
         index += 1;
         render();
-      } else {
-        onContinue?.();
       }
     });
 

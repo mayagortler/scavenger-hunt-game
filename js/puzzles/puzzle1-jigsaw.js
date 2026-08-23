@@ -71,6 +71,9 @@ export function initPuzzle1(container, { onSolved }) {
   function renderPuzzle() {
     // Tray layout order is scrambled; each piece keeps its own correctSlot.
     let pieces = shuffle(createJigsawPieces(PIECE_COUNT));
+    // Click-to-place: click a piece (tray or already-placed) to select it,
+    // then click a slot to move it there — an alternative to drag-and-drop.
+    let selectedPieceId = null;
 
     const puzzleEl = document.createElement('div');
     puzzleEl.className = 'jigsaw-puzzle';
@@ -93,6 +96,12 @@ export function initPuzzle1(container, { onSolved }) {
         pieces = placePiece(pieces, pieceId, slot);
         renderAll();
       });
+      cell.addEventListener('click', () => {
+        if (selectedPieceId === null) return;
+        pieces = placePiece(pieces, selectedPieceId, slot);
+        selectedPieceId = null;
+        renderAll();
+      });
       slotEls.push(cell);
       frame.appendChild(cell);
     }
@@ -111,6 +120,7 @@ export function initPuzzle1(container, { onSolved }) {
     function buildPieceEl(piece) {
       const pieceEl = document.createElement('div');
       pieceEl.className = 'jigsaw-piece';
+      if (piece.id === selectedPieceId) pieceEl.classList.add('selected');
       pieceEl.draggable = true;
       pieceEl.style.backgroundImage = "url('assets/images/puzzle1-jigsaw-target.jpeg')";
       const row = Math.floor(piece.correctSlot / GRID_SIZE);
@@ -118,6 +128,14 @@ export function initPuzzle1(container, { onSolved }) {
       pieceEl.style.backgroundPosition = `-${col * PIECE_SIZE_PX}px -${row * PIECE_SIZE_PX}px`;
       pieceEl.addEventListener('dragstart', (e) => {
         e.dataTransfer.setData('text/plain', String(piece.id));
+      });
+      pieceEl.addEventListener('click', (e) => {
+        // Stop this from also reaching the slot it might be sitting in — a
+        // click on an already-placed piece must only (de)select it, not
+        // immediately "place the selection" into its own slot.
+        e.stopPropagation();
+        selectedPieceId = selectedPieceId === piece.id ? null : piece.id;
+        renderAll();
       });
       return pieceEl;
     }

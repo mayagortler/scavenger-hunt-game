@@ -8,6 +8,7 @@ import {
   isCrosswordSolved,
   normalizeHebrewLetter,
   getClueNumberForRow,
+  getClueStartCell,
   isFinalColumnSolved,
   FINAL_COLUMN,
 } from './puzzle2-crossword.js';
@@ -104,6 +105,16 @@ test('getClueNumberForRow returns the single clue number owning every cell in th
 test('FINAL_COLUMN reads "בן גוריון" top-to-bottom in the solution grid', () => {
   const letters = CROSSWORD_GRID.map((row) => row[FINAL_COLUMN].letter).join('');
   assert.equal(letters, 'בנגוריונ');
+});
+
+test('getClueStartCell finds where each clue begins, for jumping to the next clue', () => {
+  assert.deepEqual(getClueStartCell(CROSSWORD_GRID, 1), { row: 0, col: 0 });
+  assert.deepEqual(getClueStartCell(CROSSWORD_GRID, 2), { row: 1, col: 5 });
+  assert.deepEqual(getClueStartCell(CROSSWORD_GRID, 8), { row: 7, col: 1 });
+});
+
+test('getClueStartCell returns null past the last clue', () => {
+  assert.equal(getClueStartCell(CROSSWORD_GRID, 9), null);
 });
 
 test('isFinalColumnSolved only checks column 8, independent of the rest of the grid', () => {
