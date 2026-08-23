@@ -18,6 +18,7 @@ export function initPuzzle5(container, { onContinue }) {
   container.innerHTML = '';
   const dialogueEl = document.createElement('div');
   container.appendChild(dialogueEl);
+  let devSolveImpl = null;
 
   renderSpeechBubble(dialogueEl, {
     characterImage: 'assets/images/char-kartoniv.jpeg',
@@ -85,5 +86,15 @@ export function initPuzzle5(container, { onContinue }) {
     wrapper.appendChild(img);
     wrapper.appendChild(nextButton);
     container.appendChild(wrapper);
+
+    // Dev-only shortcut: jump straight to the last image.
+    devSolveImpl = () => {
+      index = RIDDLE_IMAGES.length - 1;
+      render();
+    };
   }
+
+  return {
+    devSolve: () => devSolveImpl?.(),
+  };
 }

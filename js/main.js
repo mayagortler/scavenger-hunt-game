@@ -48,6 +48,10 @@ function persist() {
 // saw a single character type out — and one throwing init aborted the whole
 // module, which took the map down with it and left a blank page.
 const initializedPuzzles = new Set();
+// Handles returned by each puzzle's init function (currently just an optional
+// `devSolve()`), keyed by screen id — lets the dev toolbar actually solve
+// the puzzle currently on screen instead of only skipping past it.
+const puzzleHandles = {};
 
 function ensureInitialized(screenId) {
   const init = puzzleInitializers[screenId];
@@ -55,7 +59,7 @@ function ensureInitialized(screenId) {
   // Marked before running so a throwing init is not retried on every visit.
   initializedPuzzles.add(screenId);
   try {
-    init(screens[screenId]);
+    puzzleHandles[screenId] = init(screens[screenId]);
   } catch (error) {
     // A broken puzzle must not take out the map or the other puzzles.
     console.error(`Failed to initialise ${screenId}`, error);
@@ -252,7 +256,17 @@ devToolbar.innerHTML = `
 devToolbar.querySelector('[data-dev="prev"]').addEventListener('click', () => devStep(-1));
 devToolbar.querySelector('[data-dev="next"]').addEventListener('click', () => devStep(1));
 devToolbar.querySelector('[data-dev="solve"]').addEventListener('click', () => {
-  if (puzzleInitializers[currentScreenId]) completePuzzle(currentScreenId);
+  // Prefer actually solving the puzzle on screen (arranging jigsaw pieces,
+  // filling the crossword, etc.) so its own reveal/solved logic gets
+  // exercised for real; falls back to the old instant-skip when the puzzle
+  // hasn't rendered its interactive body yet (still on its intro speech) or
+  // doesn't have a dev solve implemented.
+  const handle = puzzleHandles[currentScreenId];
+  if (handle?.devSolve) {
+    handle.devSolve();
+  } else if (puzzleInitializers[currentScreenId]) {
+    completePuzzle(currentScreenId);
+  }
 });
 document.body.appendChild(devToolbar);
 

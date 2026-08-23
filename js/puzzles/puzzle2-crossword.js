@@ -100,6 +100,7 @@ export function initPuzzle2(container, { onSolved }) {
   container.innerHTML = '';
   const dialogueEl = document.createElement('div');
   container.appendChild(dialogueEl);
+  let devSolveImpl = null;
 
   renderSpeechBubble(dialogueEl, {
     characterImage: 'assets/images/char-avi-boaz.jpeg',
@@ -233,5 +234,21 @@ export function initPuzzle2(container, { onSolved }) {
     wrapper.appendChild(clueText);
     wrapper.appendChild(grid);
     container.appendChild(wrapper);
+
+    // Dev-only shortcut: fill in the entire correct grid at once.
+    devSolveImpl = () => {
+      CROSSWORD_GRID.forEach((row, r) => {
+        row.forEach((cell, c) => {
+          if (!cell) return;
+          userGrid = setCellLetter(userGrid, r, c, cell.letter);
+          inputEls[r][c].value = userGrid[r][c];
+        });
+      });
+      updateProgress();
+    };
   }
+
+  return {
+    devSolve: () => devSolveImpl?.(),
+  };
 }

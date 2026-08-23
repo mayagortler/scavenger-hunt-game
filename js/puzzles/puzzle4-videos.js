@@ -95,6 +95,7 @@ export function initPuzzle4(container, { onSolved }) {
   container.innerHTML = '';
   const dialogueEl = document.createElement('div');
   container.appendChild(dialogueEl);
+  let devSolveImpl = null;
 
   renderSpeechBubble(dialogueEl, {
     characterImage: 'assets/images/char-uri-tabibi.jpeg',
@@ -239,5 +240,15 @@ export function initPuzzle4(container, { onSolved }) {
     container.appendChild(grid);
     container.appendChild(tray);
     container.appendChild(flipButton);
+
+    // Dev-only shortcut: place and flip every card at once.
+    devSolveImpl = () => {
+      cards = cards.map((c) => ({ ...c, currentSlot: c.correctSlot, flipped: true }));
+      renderAll();
+    };
   }
+
+  return {
+    devSolve: () => devSolveImpl?.(),
+  };
 }

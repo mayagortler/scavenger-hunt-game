@@ -37,6 +37,7 @@ export function initPuzzle3(container, { onSolved }) {
   container.innerHTML = '';
   const dialogueEl = document.createElement('div');
   container.appendChild(dialogueEl);
+  let devSolveImpl = null;
 
   renderSpeechBubble(dialogueEl, {
     characterImage: 'assets/images/char-uzi-hadrozi.jpeg',
@@ -116,5 +117,20 @@ export function initPuzzle3(container, { onSolved }) {
     container.appendChild(wrapper);
     container.appendChild(textBox);
     container.appendChild(resetButton);
+
+    // Dev-only shortcut: jump straight to the target text.
+    devSolveImpl = () => {
+      state = { ...state, text: TARGET_TEXT };
+      textBox.value = state.text;
+      textBox.classList.add('solved');
+      if (!advanced) {
+        advanced = true;
+        onSolved?.();
+      }
+    };
   }
+
+  return {
+    devSolve: () => devSolveImpl?.(),
+  };
 }

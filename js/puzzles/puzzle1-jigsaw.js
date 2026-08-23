@@ -48,6 +48,10 @@ export function initPuzzle1(container, { onSolved }) {
   container.innerHTML = '';
   const dialogueEl = document.createElement('div');
   container.appendChild(dialogueEl);
+  // Reassigned once renderPuzzle() actually runs (after the intro speech is
+  // dismissed) — the dev toolbar's "פתור" button reads this indirectly via
+  // the returned handle below, so it always calls whatever is current.
+  let devSolveImpl = null;
 
   renderSpeechBubble(dialogueEl, {
     characterImage: 'assets/images/char-jorge.jpeg',
@@ -191,6 +195,19 @@ export function initPuzzle1(container, { onSolved }) {
 
     renderAll();
 
+    // Dev-only shortcut: snap every piece into its correct slot (revealing
+    // the answers section, same as actually assembling it) and pre-fill the
+    // correct answers, without touching the "בדוק" click itself — that stays
+    // a manual step so the check/outro flow still gets exercised for real.
+    devSolveImpl = () => {
+      pieces = pieces.map((p) => ({ ...p, currentSlot: p.correctSlot }));
+      selectedPieceId = null;
+      renderAll();
+      inputs[0].value = 'Berlin';
+      inputs[1].value = 'Germany';
+      inputs[2].value = 'Beer';
+    };
+
     puzzleEl.appendChild(frame);
     puzzleEl.appendChild(tray);
 
@@ -224,4 +241,8 @@ export function initPuzzle1(container, { onSolved }) {
     answersEl.appendChild(feedbackEl);
     container.appendChild(answersEl);
   }
+
+  return {
+    devSolve: () => devSolveImpl?.(),
+  };
 }
