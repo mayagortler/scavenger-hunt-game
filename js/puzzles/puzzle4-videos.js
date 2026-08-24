@@ -210,10 +210,10 @@ export function initPuzzle4(container, { onSolved }) {
       grid.classList.toggle('solved', solved);
       if (solved && !advanced) {
         advanced = true;
-        // A short pause instead of navigating on the very click that solves it,
-        // so the group has a moment to actually see and scan the assembled QR
-        // code before the screen moves on to the map.
-        setTimeout(() => onSolved?.(), 1800);
+        // Marks progress (map pin turns green) without leaving this screen —
+        // the group can keep looking at / scanning the assembled QR code,
+        // and returns to the map themselves via the persistent map button.
+        onSolved?.();
       }
     }
 

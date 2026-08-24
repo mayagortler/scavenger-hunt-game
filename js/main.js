@@ -110,19 +110,16 @@ function completePuzzle(puzzleId) {
   showScreen('map');
 }
 
-function showThanks() {
-  // window.close() is blocked for tabs the script didn't open, so the finale
-  // button used to do nothing at all. Give the group a real closing beat.
-  screens.final.innerHTML = '';
-  const thanks = document.createElement('div');
-  thanks.className = 'final-thanks';
-  thanks.textContent = 'תודה ששיחקתם!';
-  screens.final.appendChild(thanks);
+function resetGame() {
+  // Wipes all progress and starts over from the title screen — meant for the
+  // next group to play right after this one finishes, at the same station.
+  storage.clear();
+  window.location.reload();
 }
 
 function renderFinalScreenIfReady() {
   if (allFinalStationsDiscovered(state.letterDiscoveries)) {
-    renderFinalScreen(screens.final, { finalLetters: getFinalLetters(state), onFinish: showThanks });
+    renderFinalScreen(screens.final, { finalLetters: getFinalLetters(state), onFinish: resetGame });
     return true;
   }
   return false;
@@ -135,11 +132,11 @@ const puzzleInitializers = {
   // screen instead of jumping to the map — the group returns via the
   // persistent map button whenever they're ready, not the instant they finish.
   puzzle2: (el) => initPuzzle2(el, { onSolved: () => onPuzzleSolved('puzzle2') }),
-  puzzle3: (el) => initPuzzle3(el, { onSolved: () => completePuzzle('puzzle3') }),
-  puzzle4: (el) => initPuzzle4(el, { onSolved: () => completePuzzle('puzzle4') }),
-  // Riddle: reaching the last image marks progress silently; the forward
-  // arrow itself no longer navigates (see puzzle5-riddle.js) — same
-  // "stay on screen, leave via the map button" pattern as the crossword.
+  // Bins and videos: same "stay on screen, leave via the map button" pattern
+  // as the crossword and riddle — solving marks progress without jumping
+  // to the map on its own.
+  puzzle3: (el) => initPuzzle3(el, { onSolved: () => onPuzzleSolved('puzzle3') }),
+  puzzle4: (el) => initPuzzle4(el, { onSolved: () => onPuzzleSolved('puzzle4') }),
   puzzle5: (el) => initPuzzle5(el, { onContinue: () => onPuzzleSolved('puzzle5') }),
 };
 
@@ -206,11 +203,11 @@ screens.map.appendChild(mapCloseButton);
 function initStartScreen() {
   const title = document.createElement('h1');
   title.className = 'start-title';
-  title.textContent = 'ציד האוצר';
+  title.textContent = 'The Georgie Files';
 
   const subtitle = document.createElement('p');
   subtitle.className = 'start-subtitle';
-  subtitle.textContent = 'פתרו חידות, עקבו אחר המפה, וגלו את הקוד הסודי';
+  subtitle.textContent = 'מגלים תחנות, מוצאים פתרונות, מעלים זיכרונות';
 
   const startButton = document.createElement('button');
   startButton.className = 'start-button';
@@ -233,7 +230,7 @@ function devGoToScreen(screenId) {
     // be previewed on demand regardless of actual progress.
     renderFinalScreen(screens.final, {
       finalLetters: getFinalLetters(state) || '(אין אותיות עדיין)',
-      onFinish: showThanks,
+      onFinish: resetGame,
     });
   }
   showScreen(screenId);

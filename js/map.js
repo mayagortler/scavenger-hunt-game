@@ -19,6 +19,24 @@ export function resolveSearchQuery(query) {
   return SEARCH_ALIASES[query.trim()] || query;
 }
 
+// Known "כתיב מלא"/"כתיב חסר" (full vs. defective spelling) ambiguities for
+// place names that come up in this game — e.g. "פתח תקווה" vs "פתח תקוה".
+// Whichever spelling isn't the one OSM happens to have tagged can silently
+// return zero results, especially once combined with more words in the same
+// query (a venue name in front of the city, say). Toggling it keeps the
+// query exactly as specific as typed, so a match is still the exact place
+// meant — not a fuzzy stand-in the way dropping words out of the query could be.
+const SPELLING_VARIANT_PAIRS = [['תקווה', 'תקוה']];
+
+export function spellingVariants(query) {
+  const variants = new Set([query]);
+  for (const [full, defective] of SPELLING_VARIANT_PAIRS) {
+    if (query.includes(full)) variants.add(query.replaceAll(full, defective));
+    if (query.includes(defective)) variants.add(query.replaceAll(defective, full));
+  }
+  return [...variants];
+}
+
 async function fetchNominatim(query) {
   // accept-language biases Nominatim's own multilingual name matching toward
   // Hebrew queries; limit=5 (not 1) so an ambiguous query can be resolved by
@@ -42,16 +60,46 @@ export function mergeSearchResults(primary, extra) {
 // in isolation from the DOM control that calls it.
 export async function searchPlace(query) {
   const resolvedQuery = resolveSearchQuery(query);
-  if (resolvedQuery === query) return fetchNominatim(query);
+  if (resolvedQuery !== query) {
+    // A known-tricky query (e.g. "מטאורה") gets both the corrected search
+    // AND the group's literal query, so the place they actually need shows up
+    // without hiding whatever else Nominatim would have returned on its own.
+    const [aliasResults, rawResults] = await Promise.all([
+      fetchNominatim(resolvedQuery),
+      fetchNominatim(query),
+    ]);
+    return mergeSearchResults(aliasResults, rawResults);
+  }
 
-  // A known-tricky query (e.g. "מטאורה") gets both the corrected search
-  // AND the group's literal query, so the place they actually need shows up
-  // without hiding whatever else Nominatim would have returned on its own.
-  const [aliasResults, rawResults] = await Promise.all([
-    fetchNominatim(resolvedQuery),
-    fetchNominatim(query),
-  ]);
-  return mergeSearchResults(aliasResults, rawResults);
+  // Only kicks in once the literal query truly finds nothing, so an
+  // already-working search is never affected.
+  for (const variant of spellingVariants(query)) {
+    const results = await fetchNominatim(variant);
+    if (results.length) return results;
+  }
+
+  // Last resort: a multi-word query ("קפה גן סיפור פתח תקווה") can still fail
+  // as a whole even once spelling is fixed, so fall back to just the last
+  // word (usually the city/place name) — the broadest, most-likely-tagged
+  // part of the query, and specific enough on its own to rarely misfire the
+  // way dropping words one at a time from the front risked doing (a wrong
+  // but plausible-looking partial match on an unrelated business).
+  const words = query.trim().split(/\s+/);
+  if (words.length > 1) {
+    for (const variant of spellingVariants(words[words.length - 1])) {
+      const results = await fetchNominatim(variant);
+      if (results.length) return results;
+    }
+  }
+
+  return [];
+}
+
+// A plain Google Maps search link needs no API key (unlike the Places/
+// Geocoding APIs, which require a billed Google Cloud project) — offered as
+// a one-click fallback for whatever the embedded OSM-based search can't find.
+export function googleMapsSearchUrl(query) {
+  return query.trim() ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query.trim())}` : 'https://www.google.com/maps';
 }
 
 function addSearchControl(map) {
@@ -63,9 +111,10 @@ function addSearchControl(map) {
       <div class="map-search-row">
         <input type="text" class="map-search-input" placeholder="חיפוש מקום..." />
         <button type="button" class="map-search-button">חפש</button>
-        <span class="map-search-status"></span>
       </div>
+      <span class="map-search-status"></span>
       <ul class="map-search-results" hidden></ul>
+      <a class="map-search-google-link" target="_blank" rel="noopener">חפשו בגוגל מפות ↗</a>
     `;
 
     // A player typing/clicking inside this control must not pan/zoom the map underneath it.
@@ -76,6 +125,15 @@ function addSearchControl(map) {
     const button = container.querySelector('.map-search-button');
     const status = container.querySelector('.map-search-status');
     const resultsEl = container.querySelector('.map-search-results');
+    const googleLink = container.querySelector('.map-search-google-link');
+
+    // Kept in sync with whatever's typed, so this always opens Google's own
+    // search for the same query — no API key needed for a plain link like
+    // this (unlike embedding Google's Places/Geocoding APIs, which do).
+    googleLink.href = googleMapsSearchUrl('');
+    input.addEventListener('input', () => {
+      googleLink.href = googleMapsSearchUrl(input.value);
+    });
 
     function goTo(result) {
       const [south, north, west, east] = result.boundingbox.map(Number);
