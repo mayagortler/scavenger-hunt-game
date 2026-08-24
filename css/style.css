@@ -484,6 +484,28 @@ button:focus-visible { outline: 3px solid var(--color-ink); outline-offset: 2px;
   cursor: pointer;
   z-index: 1;
 }
+/* Small per-clue "done" mark — opposite corner from the clue number, hidden
+   until that whole word is typed correctly, independent of the other clues
+   and of the overall puzzle-solved state. */
+.crossword-clue-check {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-success);
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0;
+  transform: scale(0.4);
+  transition: opacity var(--dur-fast) var(--ease-standard), transform var(--dur-fast) var(--ease-standard);
+}
+.crossword-clue-check.visible { opacity: 1; transform: scale(1); }
 .crossword-clue-text { max-width: 260px; font-size: 16px; line-height: 1.5; color: var(--color-ink); animation: fadeIn var(--dur-base) var(--ease-standard); }
 .crossword-clue-image { max-width: 240px; display: block; margin-top: 10px; border: 2px solid var(--color-ink); border-radius: var(--radius-sm); }
 /* Only the final-answer column (col 8, "בן גוריון" read top-to-bottom) turns

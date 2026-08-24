@@ -77,6 +77,19 @@ export function getClueStartCell(grid, clueNumber) {
   return null;
 }
 
+// Whether one clue's whole word is currently typed correctly — every row
+// holds exactly one clue's word, so this is just isCrosswordSolved narrowed
+// to a single row.
+export function isRowSolved(userGrid, solutionGrid, row) {
+  for (let c = 0; c < solutionGrid[row].length; c++) {
+    const solutionCell = solutionGrid[row][c];
+    if (solutionCell === null) continue;
+    const typed = normalizeHebrewLetter((userGrid[row][c] || '').trim());
+    if (typed !== normalizeHebrewLetter(solutionCell.letter)) return false;
+  }
+  return true;
+}
+
 // Column 8 is the letter every one of the 8 across-words crosses through, and
 // reading it top-to-bottom spells the final answer "בן גוריון" — the only
 // column that should be marked solved, not the whole grid (verified by
@@ -149,13 +162,20 @@ export function initPuzzle2(container, { onSolved }) {
     // Column-8 cells only (the compiled final-answer column) — solved marks
     // just these, not the whole grid.
     const finalColumnCellEls = [];
+    // One checkmark element per row (only rows have a clue at all), so each
+    // finished word can get its own small green ✓ independent of the others.
+    const rowCheckEls = [];
 
-    // Shared by every cell's input/backspace handler so the column-highlight
-    // and "puzzle solved" checks stay in one place regardless of which
-    // direction the group is typing.
+    // Shared by every cell's input/backspace handler so the column-highlight,
+    // per-clue checkmarks, and "puzzle solved" checks stay in one place
+    // regardless of which direction the group is typing.
     function updateProgress() {
       const columnSolved = isFinalColumnSolved(userGrid, CROSSWORD_GRID);
       finalColumnCellEls.forEach((el) => el.classList.toggle('solved', columnSolved));
+
+      CROSSWORD_GRID.forEach((row, r) => {
+        if (rowCheckEls[r]) rowCheckEls[r].classList.toggle('visible', isRowSolved(userGrid, CROSSWORD_GRID, r));
+      });
 
       const solved = isCrosswordSolved(userGrid, CROSSWORD_GRID);
       if (solved && !markedSolved) {
@@ -185,10 +205,19 @@ export function initPuzzle2(container, { onSolved }) {
           numberEl.className = 'crossword-clue-number';
           numberEl.textContent = String(cell.clueNumber);
           cellEl.appendChild(numberEl);
+
+          const checkEl = document.createElement('span');
+          checkEl.className = 'crossword-clue-check';
+          checkEl.textContent = '✓';
+          cellEl.appendChild(checkEl);
+          rowCheckEls[r] = checkEl;
         }
         const input = document.createElement('input');
         input.maxLength = 2; // allow the numberEl + a following keystroke; letter logic below extracts last char
         input.className = 'crossword-input';
+        // Tab (not just a mouse click) can move focus into this word — show
+        // its definition either way, not only on click.
+        input.addEventListener('focus', () => showClue(rowClueNumber));
         input.addEventListener('input', () => {
           userGrid = setCellLetter(userGrid, r, c, input.value);
           input.value = userGrid[r][c];

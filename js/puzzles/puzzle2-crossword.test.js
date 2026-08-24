@@ -9,6 +9,7 @@ import {
   normalizeHebrewLetter,
   getClueNumberForRow,
   getClueStartCell,
+  isRowSolved,
   isFinalColumnSolved,
   FINAL_COLUMN,
 } from './puzzle2-crossword.js';
@@ -115,6 +116,22 @@ test('getClueStartCell finds where each clue begins, for jumping to the next clu
 
 test('getClueStartCell returns null past the last clue', () => {
   assert.equal(getClueStartCell(CROSSWORD_GRID, 9), null);
+});
+
+test('isRowSolved is true only once that row (one clue\'s whole word) matches exactly', () => {
+  let userGrid = createEmptyUserGrid(CROSSWORD_GRID);
+  assert.equal(isRowSolved(userGrid, CROSSWORD_GRID, 0), false);
+
+  for (let c = 0; c < CROSSWORD_GRID[0].length; c++) {
+    userGrid = setCellLetter(userGrid, 0, c, CROSSWORD_GRID[0][c].letter);
+  }
+  // Row 0 is complete and correct; every other row is still blank.
+  assert.equal(isRowSolved(userGrid, CROSSWORD_GRID, 0), true);
+  assert.equal(isRowSolved(userGrid, CROSSWORD_GRID, 1), false);
+  assert.equal(isCrosswordSolved(userGrid, CROSSWORD_GRID), false);
+
+  const withOneWrong = setCellLetter(userGrid, 0, 0, 'ז');
+  assert.equal(isRowSolved(withOneWrong, CROSSWORD_GRID, 0), false);
 });
 
 test('isFinalColumnSolved only checks column 8, independent of the rest of the grid', () => {

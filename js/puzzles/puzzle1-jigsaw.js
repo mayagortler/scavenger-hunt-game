@@ -128,7 +128,11 @@ export function initPuzzle1(container, { onSolved }) {
       pieceEl.draggable = true;
       pieceEl.style.backgroundImage = "url('assets/images/puzzle1-jigsaw-target.jpeg')";
       const row = Math.floor(piece.correctSlot / GRID_SIZE);
-      const col = piece.correctSlot % GRID_SIZE;
+      // The frame is inside a dir="rtl" page, so CSS Grid places column 0 on
+      // the right (same issue as puzzle 4's QR sprite) — mirror which slice
+      // of the source photo a piece shows, or the assembled picture comes
+      // out horizontally flipped even when every piece is "correctly" placed.
+      const col = (GRID_SIZE - 1) - (piece.correctSlot % GRID_SIZE);
       pieceEl.style.backgroundPosition = `-${col * PIECE_SIZE_PX}px -${row * PIECE_SIZE_PX}px`;
       pieceEl.addEventListener('dragstart', (e) => {
         e.dataTransfer.setData('text/plain', String(piece.id));
