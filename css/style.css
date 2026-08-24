@@ -289,8 +289,7 @@ button:focus-visible { outline: 3px solid var(--color-ink); outline-offset: 2px;
   font-size: 14px;
   padding: 7px 16px;
 }
-.map-search-status { display: block; margin-top: 6px; font-size: 12px; color: var(--color-ink-soft); white-space: nowrap; }
-.map-search-status:empty { display: none; }
+.map-search-status { font-size: 12px; color: var(--color-ink-soft); white-space: nowrap; }
 .map-search-results {
   list-style: none;
   margin: 8px 0 0;
@@ -309,19 +308,6 @@ button:focus-visible { outline: 3px solid var(--color-ink); outline-offset: 2px;
 }
 .map-search-results li:hover { background: rgba(201, 146, 47, 0.18); }
 .map-search-results[hidden] { display: none; }
-/* Secondary, low-emphasis fallback — a plain link (not a filled button) since
-   it leaves the game entirely, opening real Google Maps in a new tab. No API
-   key is used or needed for this; it's just a query-prefilled search URL. */
-.map-search-google-link {
-  display: block;
-  margin-top: 8px;
-  padding-top: 8px;
-  border-top: 1px solid rgba(239, 226, 205, 0.2);
-  font-size: 12px;
-  color: var(--color-accent);
-  text-decoration: none;
-}
-.map-search-google-link:hover { text-decoration: underline; }
 
 /* Letter-station popup: the "box with one letter" from the source doc,
    styled like a rubber-stamped case mark. Leaflet's own popup chrome
