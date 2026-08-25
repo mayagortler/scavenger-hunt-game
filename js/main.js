@@ -93,7 +93,18 @@ function showScreen(screenId) {
 function addMapOpenButton(screenEl) {
   const button = document.createElement('button');
   button.className = 'map-open-button';
-  button.textContent = 'מפה';
+  button.setAttribute('aria-label', 'מפה');
+  button.title = 'מפה';
+  // A folded-map icon (currentColor, so it follows the button's own CSS
+  // color) instead of the word "מפה" — the round button is small enough that
+  // a label wouldn't fit legibly anyway.
+  button.innerHTML = `
+    <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21 3 6"></polygon>
+      <line x1="9" y1="3" x2="9" y2="18"></line>
+      <line x1="15" y1="6" x2="15" y2="21"></line>
+    </svg>
+  `;
   button.addEventListener('click', () => showScreen('map'));
   screenEl.appendChild(button);
 }
@@ -227,9 +238,11 @@ function devGoToScreen(screenId) {
   if (screenId === 'final') {
     // 'final' has no puzzleInitializer and is normally only ever populated by
     // the real onLetterStationClick flow — render it directly here so it can
-    // be previewed on demand regardless of actual progress.
+    // be previewed on demand regardless of actual progress. Falls back to 4
+    // dummy tiles (not real letters) since the tile puzzle needs exactly 4
+    // to render at all.
     renderFinalScreen(screens.final, {
-      finalLetters: getFinalLetters(state) || '(אין אותיות עדיין)',
+      finalLetters: getFinalLetters(state) || 'אבגד',
       onFinish: resetGame,
     });
   }

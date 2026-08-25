@@ -1,6 +1,6 @@
 /* ===== Design tokens =====
-   Direction: a dim, warm "bachelor-party bar" mood — near-black charcoal,
-   whiskey-amber accent, parchment-cream text/borders — built on the same
+   Direction: a dark slate-blue base with a single gold/amber accent, plus
+   emerald-green and pomegranate-red for success/danger — built on the same
    flat-color, hard-offset-shadow, stamp-animation language as before (no
    soft glow/blur, no purple-blue AI gradient, single accent color). This is
    a token recolor of that structure, not a rebuild. */
@@ -8,24 +8,28 @@
   --font-display: 'Suez One', 'Rubik', serif;
   --font-body: 'Rubik', system-ui, sans-serif;
 
-  --color-paper: #15110d;
-  --color-card: #221b15;
-  --color-card-2: #2e251c;
-  /* True near-black, decoupled from --color-ink: used where a role needs to
-     stay dark regardless of ink's light-text value below (blocked crossword
-     squares, photo letterboxing, the jigsaw "#" badge). */
-  --color-void: #0a0806;
-  --color-ink: #efe2cd;
-  --color-ink-soft: #b7a68a;
+  --color-paper: #2c3e50;
+  --color-card: #34495e;
+  --color-card-2: #3f5871;
+  /* True near-black-navy, decoupled from --color-ink: used where a role needs
+     to stay dark regardless of ink's light-text value below (blocked
+     crossword squares, photo letterboxing, the jigsaw "#" badge). */
+  --color-void: #1a252f;
+  --color-ink: #ecf0f1;
+  --color-ink-soft: #95a5a6;
 
-  --color-accent: #c9922f;
-  --color-accent-dark: #9c701f;
-  /* Dark text for anything sitting on the light/amber buttons below. */
-  --color-on-accent: #201603;
+  --color-accent: #e0a72e;
+  --color-accent-dark: #b3841f;
 
-  --color-success: #4f9d63;
-  --color-success-dark: #316b3f;
-  --color-danger: #c9503b;
+  --color-success: #27ae60;
+  --color-success-dark: #1e8449;
+  --color-danger: #c0392b;
+
+  /* Buttons get their own dark-blue surface, distinct from the gold accent
+     (kept for titles/highlights/focus rings) and from the paper/card blues
+     behind them, so they still read clearly as pressable. */
+  --color-button-bg: #1b4f72;
+  --color-button-bg-hover: #23628c;
 
   --radius-sm: 4px;
   --radius-md: 6px;
@@ -53,8 +57,8 @@ body {
      gradient blob — flat and specific rather than a generic AI glow-mesh. */
   background-image: repeating-linear-gradient(
     45deg,
-    rgba(239, 226, 205, 0.035) 0,
-    rgba(239, 226, 205, 0.035) 1px,
+    rgba(236, 240, 241, 0.035) 0,
+    rgba(236, 240, 241, 0.035) 1px,
     transparent 1px,
     transparent 11px
   );
@@ -102,6 +106,30 @@ button { font-family: inherit; }
 .screen:not([hidden]) { animation: fadeIn var(--dur-slow) var(--ease-standard); }
 #screen-map { padding: 0; }
 
+/* Every puzzle's content — the case-file card, the video grid+tray+flip
+   button as separate siblings, the riddle carousel, the final letter tiles —
+   is centered as a group in the middle of the screen rather than sitting
+   top-aligned under the 40px padding. Scoped to these screens only (not the
+   map, which needs its Leaflet container to fill the full height via
+   flex-stretch, not flex-center; not the start screen, which already
+   centers itself). "safe center" (where supported) keeps taller content
+   scrollable to its top edge instead of clipping it when centered content
+   overflows a scrollable container. */
+#screen-puzzle1, #screen-puzzle2, #screen-puzzle3, #screen-puzzle4, #screen-puzzle5, #screen-final {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  justify-content: safe center;
+}
+/* These ID selectors otherwise outrank .screen[hidden]'s class+attribute
+   specificity (same issue #screen-start[hidden] needed above), so "hidden"
+   alone wouldn't actually hide these screens. */
+#screen-puzzle1[hidden], #screen-puzzle2[hidden], #screen-puzzle3[hidden],
+#screen-puzzle4[hidden], #screen-puzzle5[hidden], #screen-final[hidden] {
+  display: none;
+}
+
 /* Start (title) screen */
 #screen-start {
   display: flex;
@@ -148,14 +176,14 @@ button {
   font-weight: 700;
   border: 2px solid var(--color-ink);
   border-radius: var(--radius-sm);
-  background: var(--color-accent);
-  color: var(--color-on-accent);
+  background: var(--color-button-bg);
+  color: var(--color-ink);
   cursor: pointer;
   box-shadow: var(--shadow-card);
-  transition: transform var(--dur-fast) var(--ease-standard), box-shadow var(--dur-fast) var(--ease-standard),
-    opacity var(--dur-fast) var(--ease-standard);
+  transition: background var(--dur-fast) var(--ease-standard), transform var(--dur-fast) var(--ease-standard),
+    box-shadow var(--dur-fast) var(--ease-standard), opacity var(--dur-fast) var(--ease-standard);
 }
-button:hover { transform: translate(-1px, -1px); box-shadow: 5px 5px 0 rgba(0, 0, 0, 0.55); }
+button:hover { background: var(--color-button-bg-hover); transform: translate(-1px, -1px); box-shadow: 5px 5px 0 rgba(0, 0, 0, 0.55); }
 button:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 rgba(0, 0, 0, 0.45); }
 button:disabled { opacity: 0.45; cursor: default; box-shadow: none; transform: none; }
 button:focus-visible { outline: 3px solid var(--color-ink); outline-offset: 2px; }
@@ -165,13 +193,26 @@ button:focus-visible { outline: 3px solid var(--color-ink); outline-offset: 2px;
   bottom: 16px;
   left: 16px;
   z-index: 1000;
-  padding: 11px 20px;
-  font-size: 15px;
   background: var(--color-card-2);
   color: var(--color-ink);
   border-color: var(--color-ink);
 }
-.map-open-button:hover, .map-close-button:hover { background: #3d3226; }
+.map-close-button {
+  padding: 11px 20px;
+  font-size: 15px;
+}
+/* Round icon button — small enough that a text label wouldn't fit legibly,
+   so it carries a map-icon SVG (see main.js) instead of the word "מפה". */
+.map-open-button {
+  width: 56px;
+  height: 56px;
+  padding: 0;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.map-open-button:hover, .map-close-button:hover { background: #4a6278; }
 
 /* Dev-only screen navigator — hidden by default, toggled with Ctrl+Shift+D.
    Never meant to be visible during the live event; the red tint is
@@ -216,7 +257,9 @@ button:focus-visible { outline: 3px solid var(--color-ink); outline-offset: 2px;
   display: block;
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  /* Fills the viewport edge-to-edge, cropping rather than letterboxing —
+     no black bars regardless of the photo's own aspect ratio. */
+  object-fit: cover;
   animation: fadeIn 500ms var(--ease-standard);
 }
 .speech-panel {
@@ -233,15 +276,42 @@ button:focus-visible { outline: 3px solid var(--color-ink); outline-offset: 2px;
   overflow-y: auto;
   animation: fadeSlideIn var(--dur-slow) var(--ease-standard);
 }
+/* A real comic-style speech bubble: a triangular tail pointing out of the
+   bubble's right edge toward the character photo beside it. Two stacked
+   triangles (ink-colored underneath, background-colored on top, inset by the
+   bubble's own border width) fake a continuous border running onto the tail. */
 .speech-bubble {
+  position: relative;
   padding: 20px;
   border-radius: var(--radius-sm);
-  background: var(--color-card-2);
-  border: 2px solid var(--color-ink);
+  background: #fff;
+  /* A light bubble needs a dark border/text pair instead of the light-ink
+     one everything else on this dark UI uses, or both would vanish against
+     the white fill. */
+  color: var(--color-paper);
+  border: 2px solid var(--color-paper);
   box-shadow: var(--shadow-card-lg);
   font-size: 20px;
   line-height: 1.55;
   white-space: pre-line;
+}
+.speech-bubble::before,
+.speech-bubble::after {
+  content: '';
+  position: absolute;
+  left: 100%;
+  border-style: solid;
+}
+.speech-bubble::before {
+  top: 28px;
+  border-width: 16px 0 16px 20px;
+  border-color: transparent transparent transparent var(--color-paper);
+}
+.speech-bubble::after {
+  top: 30px;
+  left: calc(100% - 2px);
+  border-width: 14px 0 14px 18px;
+  border-color: transparent transparent transparent #fff;
 }
 .speech-advance-button { align-self: center; }
 
@@ -275,7 +345,7 @@ button:focus-visible { outline: 3px solid var(--color-ink); outline-offset: 2px;
   font-size: 14px;
   padding: 7px 10px;
   width: 160px;
-  border: 1.5px solid rgba(239, 226, 205, 0.3);
+  border: 1.5px solid rgba(236, 240, 241, 0.3);
   border-radius: var(--radius-sm);
   direction: rtl;
   text-align: right;
@@ -304,9 +374,9 @@ button:focus-visible { outline: 3px solid var(--color-ink); outline-offset: 2px;
   line-height: 1.4;
   cursor: pointer;
   color: var(--color-ink);
-  border-bottom: 1px solid rgba(239, 226, 205, 0.15);
+  border-bottom: 1px solid rgba(236, 240, 241, 0.15);
 }
-.map-search-results li:hover { background: rgba(201, 146, 47, 0.18); }
+.map-search-results li:hover { background: rgba(224, 167, 46, 0.18); }
 .map-search-results[hidden] { display: none; }
 
 /* Letter-station popup: the "box with one letter" from the source doc,
@@ -356,12 +426,12 @@ button:focus-visible { outline: 3px solid var(--color-ink); outline-offset: 2px;
 .jigsaw-slot {
   width: 60px;
   height: 60px;
-  outline: 1px dashed rgba(239, 226, 205, 0.35);
+  outline: 1px dashed rgba(236, 240, 241, 0.35);
   outline-offset: -1px;
   transition: background var(--dur-fast) var(--ease-standard);
 }
-.jigsaw-slot:hover { background: rgba(201, 146, 47, 0.15); }
-.jigsaw-slot.selectable-target { background: rgba(201, 146, 47, 0.2); }
+.jigsaw-slot:hover { background: rgba(224, 167, 46, 0.15); }
+.jigsaw-slot.selectable-target { background: rgba(224, 167, 46, 0.2); }
 .jigsaw-tray {
   display: flex;
   flex-wrap: wrap;
@@ -377,7 +447,7 @@ button:focus-visible { outline: 3px solid var(--color-ink); outline-offset: 2px;
   height: 60px;
   background-size: 300px 300px;
   cursor: grab;
-  outline: 1px solid rgba(239, 226, 205, 0.4);
+  outline: 1px solid rgba(236, 240, 241, 0.4);
   outline-offset: -1px;
   transition: transform var(--dur-fast) var(--ease-standard), box-shadow var(--dur-fast) var(--ease-standard);
 }
@@ -425,7 +495,7 @@ button:focus-visible { outline: 3px solid var(--color-ink); outline-offset: 2px;
 .jigsaw-answers input {
   width: 120px;
   padding: 9px 12px;
-  border: 2px solid rgba(239, 226, 205, 0.3);
+  border: 2px solid rgba(236, 240, 241, 0.3);
   border-radius: var(--radius-sm);
   font-family: inherit;
   font-size: 15px;
@@ -450,7 +520,7 @@ button:focus-visible { outline: 3px solid var(--color-ink); outline-offset: 2px;
 /* Puzzle 2: crossword */
 .crossword-wrapper { display: flex; gap: 28px; justify-content: center; align-items: flex-start; flex-wrap: wrap; margin: 24px auto; padding: 28px; max-width: 900px; }
 .crossword-grid { border-radius: var(--radius-sm); overflow: hidden; box-shadow: var(--shadow-inset); }
-.crossword-cell { width: 36px; height: 36px; border: 1px solid rgba(239, 226, 205, 0.35); position: relative; background: var(--color-card-2); cursor: pointer; }
+.crossword-cell { width: 36px; height: 36px; border: 1px solid rgba(236, 240, 241, 0.35); position: relative; background: var(--color-card-2); cursor: pointer; }
 /* Blocked squares stay true-black (--color-void) regardless of theme — a
    crossword's blocked cells read as solid voids, not as "ink-colored text". */
 .crossword-cell.blocked { background: var(--color-void); border-color: var(--color-void); }
@@ -466,7 +536,7 @@ button:focus-visible { outline: 3px solid var(--color-ink); outline-offset: 2px;
   color: var(--color-ink);
   transition: background var(--dur-fast) var(--ease-standard);
 }
-.crossword-input:focus { outline: none; background: rgba(201, 146, 47, 0.22); }
+.crossword-input:focus { outline: none; background: rgba(224, 167, 46, 0.22); }
 .crossword-clue-number {
   /* Hit area, not just glyph size — a bare 9px-font digit measures ~5x10px,
      which is nearly impossible to click reliably with a real mouse. */
@@ -541,7 +611,7 @@ button:focus-visible { outline: 3px solid var(--color-ink); outline-offset: 2px;
   font-size: 22px;
   font-weight: 600;
   color: var(--color-ink);
-  border: 2px solid rgba(239, 226, 205, 0.3);
+  border: 2px solid rgba(236, 240, 241, 0.3);
   border-radius: var(--radius-sm);
   background: var(--color-card-2);
   transition: background var(--dur-base) var(--ease-standard), color var(--dur-base) var(--ease-standard);
@@ -565,13 +635,13 @@ button:focus-visible { outline: 3px solid var(--color-ink); outline-offset: 2px;
 .video-slot {
   width: 120px;
   height: 180px;
-  border: 2px dashed rgba(239, 226, 205, 0.4);
+  border: 2px dashed rgba(236, 240, 241, 0.4);
   border-radius: var(--radius-sm);
   position: relative;
   transition: border-color var(--dur-fast) var(--ease-standard), background var(--dur-fast) var(--ease-standard);
 }
-.video-slot:hover { border-color: var(--color-accent); background: rgba(201, 146, 47, 0.1); }
-.video-slot-number { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: 700; color: rgba(239, 226, 205, 0.35); }
+.video-slot:hover { border-color: var(--color-accent); background: rgba(224, 167, 46, 0.1); }
+.video-slot-number { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: 700; color: rgba(236, 240, 241, 0.35); }
 .video-tray {
   display: flex;
   flex-wrap: wrap;
@@ -581,7 +651,7 @@ button:focus-visible { outline: 3px solid var(--color-ink); outline-offset: 2px;
   margin: 16px auto;
   padding: 14px;
   background: rgba(0, 0, 0, 0.25);
-  border: 2px solid rgba(239, 226, 205, 0.3);
+  border: 2px solid rgba(236, 240, 241, 0.3);
   border-radius: var(--radius-md);
 }
 .video-card { width: 120px; height: 180px; cursor: grab; border: 2px solid var(--color-ink); border-radius: var(--radius-sm); overflow: hidden; box-shadow: var(--shadow-card-sm); transition: transform var(--dur-fast) var(--ease-standard), box-shadow var(--dur-fast) var(--ease-standard); }
@@ -628,7 +698,7 @@ button:focus-visible { outline: 3px solid var(--color-ink); outline-offset: 2px;
   font-size: 16px;
   z-index: 1;
 }
-.video-modal-close:hover { background: #3d3226; }
+.video-modal-close:hover { background: #4a6278; }
 .video-modal-iframe { width: min(80vw, 640px); height: min(45vw, 360px); border: none; }
 
 /* Shared puzzle buttons */
@@ -645,35 +715,46 @@ button:focus-visible { outline: 3px solid var(--color-ink); outline-offset: 2px;
 .riddle-nav-button { font-size: 22px; padding: 14px 20px; }
 .riddle-nav-button:disabled { opacity: 0.35; cursor: not-allowed; }
 
-/* Final screen */
-.final-letters {
-  text-align: center;
-  margin-top: 16vh;
-  font-family: var(--font-display);
-  font-size: 76px;
-  letter-spacing: 6px;
-  color: var(--color-accent);
+/* Final screen — the 4 collected letters are draggable-by-click tiles the
+   group rearranges until they spell the answer, rather than a static display. */
+.final-letters-puzzle {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  animation: fadeSlideUp var(--dur-slow) var(--ease-standard);
 }
-.final-letter {
-  display: inline-block;
-  margin: 0 8px;
-  --stamp-rotate: -3deg;
-  animation: stamp 500ms var(--ease-standard) both;
-  animation-delay: calc(var(--i) * 180ms);
+.final-letter-tile {
+  width: 90px;
+  height: 90px;
+  font-family: var(--font-display);
+  font-size: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-card);
+  border: 3px solid var(--color-ink);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card-lg);
+  color: var(--color-ink);
+  cursor: pointer;
+  transition: transform var(--dur-fast) var(--ease-standard), box-shadow var(--dur-fast) var(--ease-standard);
+}
+.final-letter-tile:hover { transform: translate(-2px, -2px); box-shadow: 8px 8px 0 rgba(0, 0, 0, 0.5); }
+/* A selected tile (awaiting the second click to swap with) gets a bright ring. */
+.final-letter-tile.selected { outline: 4px solid var(--color-accent); outline-offset: 2px; }
+.final-letter-tile.solved {
+  background: var(--color-success);
+  border-color: var(--color-success-dark);
+  color: #fff;
+  cursor: default;
+  --stamp-rotate: -2deg;
+  animation: stamp 400ms var(--ease-standard);
 }
 .final-finish-button {
   display: block;
-  margin: 40px auto;
+  margin: 32px auto 0;
   padding: 15px 52px;
   font-size: 22px;
-  animation: fadeSlideUp var(--dur-slow) var(--ease-standard) 900ms both;
+  animation: fadeSlideUp var(--dur-slow) var(--ease-standard) 200ms both;
 }
-.final-thanks {
-  font-family: var(--font-display);
-  font-size: 50px;
-  text-align: center;
-  margin-top: 36vh;
-  color: var(--color-ink);
-  --stamp-rotate: -2deg;
-  animation: stamp 450ms var(--ease-standard);
-}
+.final-finish-button[hidden] { display: none; }
