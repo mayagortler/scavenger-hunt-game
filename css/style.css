@@ -265,9 +265,11 @@ button:focus-visible { outline: 3px solid var(--color-ink); outline-offset: 2px;
 .speech-panel {
   position: absolute;
   inset-block: 0;
-  left: 0;
+  /* Shifted right off the very edge so the bubble (and its tail) sits closer
+     to the character rather than hugging the far side of the screen. */
+  left: 8vw;
   width: 380px;
-  max-width: 90vw;
+  max-width: 80vw;
   display: flex;
   flex-direction: column;
   justify-content: center;
