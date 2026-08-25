@@ -1,7 +1,7 @@
 // js/speechBubble.js
 import { visibleText, isTypingComplete } from './typewriter.js';
 
-export function renderSpeechBubble(container, { characterImage, characterName, text, buttonLabel, onAdvance }) {
+export function renderSpeechBubble(container, { characterImage, characterName, text, buttonLabel, onAdvance, panelLeft }) {
   container.innerHTML = '';
 
   const wrapper = document.createElement('div');
@@ -14,6 +14,10 @@ export function renderSpeechBubble(container, { characterImage, characterName, t
 
   const panel = document.createElement('div');
   panel.className = 'speech-panel';
+  // Each character stands in a different spot in their own photo, so how far
+  // right the bubble sits (to end up next to them, not just off the edge) is
+  // tuned per photo by the caller instead of one fixed value for everyone.
+  if (panelLeft) panel.style.left = panelLeft;
 
   const bubble = document.createElement('div');
   bubble.className = 'speech-bubble';

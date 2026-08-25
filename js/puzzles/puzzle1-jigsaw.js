@@ -56,12 +56,14 @@ export function initPuzzle1(container, { onSolved }) {
   renderSpeechBubble(dialogueEl, {
     characterImage: 'assets/images/char-jorge.jpeg',
     characterName: 'חורחה',
+    panelLeft: '17vw',
     text: INTRO_TEXT,
     buttonLabel: 'ואמוס',
     onAdvance: () => {
       renderSpeechBubble(dialogueEl, {
         characterImage: 'assets/images/char-jorge.jpeg',
         characterName: 'חורחה',
+        panelLeft: '17vw',
         text: RULES_TEXT,
         buttonLabel: 'סי סניור',
         onAdvance: () => {
@@ -226,6 +228,7 @@ export function initPuzzle1(container, { onSolved }) {
         renderSpeechBubble(dialogueEl, {
           characterImage: 'assets/images/char-jorge.jpeg',
           characterName: 'חורחה',
+          panelLeft: '17vw',
           text: OUTRO_TEXT,
           buttonLabel: 'המשך',
           onAdvance: () => onSolved?.(),

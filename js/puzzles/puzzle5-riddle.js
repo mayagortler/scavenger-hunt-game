@@ -23,6 +23,7 @@ export function initPuzzle5(container, { onContinue }) {
   renderSpeechBubble(dialogueEl, {
     characterImage: 'assets/images/char-kartoniv.jpeg',
     characterName: 'קרטוניב',
+    panelLeft: '26vw',
     text: INTRO_TEXT,
     buttonLabel: '←',
     onAdvance: () => {

@@ -42,6 +42,7 @@ export function initPuzzle3(container, { onSolved }) {
   renderSpeechBubble(dialogueEl, {
     characterImage: 'assets/images/char-uzi-hadrozi.jpeg',
     characterName: 'עוזי הדרוזי',
+    panelLeft: '28vw',
     text: INTRO_TEXT,
     buttonLabel: '←',
     onAdvance: () => {

@@ -100,6 +100,7 @@ export function initPuzzle4(container, { onSolved }) {
   renderSpeechBubble(dialogueEl, {
     characterImage: 'assets/images/char-uri-tabibi.jpeg',
     characterName: 'אורי טביבי',
+    panelLeft: '12vw',
     text: INTRO_TEXT,
     buttonLabel: '←',
     onAdvance: () => {
