@@ -113,6 +113,11 @@ export function initPuzzle4(container, { onSolved }) {
     // Tray layout order is scrambled; each card keeps its own correctSlot.
     let cards = shuffle(createVideoCards());
     let advanced = false;
+    // Click-to-place: click a card (tray or already-placed) to select it,
+    // then click a slot to move it there — native HTML5 drag-and-drop has no
+    // real touch-device equivalent, so this is the only way to solve this
+    // puzzle at all on a phone.
+    let selectedCardId = null;
 
     const grid = document.createElement('div');
     grid.className = 'video-grid';
@@ -128,6 +133,16 @@ export function initPuzzle4(container, { onSolved }) {
       slotEl.addEventListener('drop', (e) => {
         e.preventDefault();
         const cardId = Number(e.dataTransfer.getData('text/plain'));
+        handleDrop(cardId, slot);
+      });
+      slotEl.addEventListener('click', () => {
+        if (selectedCardId === null) return;
+        // Cleared before handleDrop, not after: handleDrop calls renderAll()
+        // itself, so clearing afterward would leave the just-placed card
+        // rendered with a stale .selected outline for one frame that never
+        // clears without a second, separate render pass.
+        const cardId = selectedCardId;
+        selectedCardId = null;
         handleDrop(cardId, slot);
       });
       slotEls.push(slotEl);
@@ -166,17 +181,41 @@ export function initPuzzle4(container, { onSolved }) {
     function buildCardEl(card) {
       const cardEl = document.createElement('div');
       cardEl.className = 'video-card';
+      if (card.id === selectedCardId) cardEl.classList.add('selected');
       cardEl.draggable = true;
       cardEl.appendChild(cardFace(card));
+
+      // Watching the video is a separate action from picking the card up, so
+      // it gets its own small button — the card body itself is click-to-place
+      // (an alternative to drag-and-drop, since native HTML5 drag has no real
+      // touch-device equivalent, making this puzzle otherwise unsolvable on
+      // a phone). Skipped once flipped: a flipped card shows a slice of the
+      // assembled QR code, not the video, and the group needs to scan that
+      // code cleanly — an overlaid button sitting on top of it is exactly the
+      // kind of visual noise that can break a real QR scan.
+      if (!card.flipped) {
+        const previewButton = document.createElement('button');
+        previewButton.type = 'button';
+        previewButton.className = 'video-card-preview';
+        previewButton.setAttribute('aria-label', 'צפייה בסרטון');
+        previewButton.textContent = '▶';
+        previewButton.addEventListener('click', (e) => {
+          e.stopPropagation();
+          openVideoModal(card.url);
+        });
+        cardEl.appendChild(previewButton);
+      }
+
       cardEl.addEventListener('dragstart', (e) => {
         e.dataTransfer.setData('text/plain', String(card.id));
       });
       cardEl.addEventListener('click', (e) => {
-        // e.detail is 0 for programmatic/synthetic clicks (e.g. el.click() calls in tests);
-        // real pointer clicks always report detail >= 1. This just keeps test-triggered
-        // .click() calls from opening a new tab during automated checks.
-        if (e.detail === 0) return;
-        openVideoModal(card.url);
+        // Stop this from also reaching the slot it might be sitting in — a
+        // click on an already-placed card must only (de)select it, not
+        // immediately "place the selection" into its own slot.
+        e.stopPropagation();
+        selectedCardId = selectedCardId === card.id ? null : card.id;
+        renderAll();
       });
       return cardEl;
     }

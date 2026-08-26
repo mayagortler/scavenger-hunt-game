@@ -47,8 +47,14 @@
 
 * { box-sizing: border-box; }
 
+html { overflow-x: hidden; }
 body {
   margin: 0;
+  /* Safety net for narrow phone screens: several puzzle grids below have a
+     fixed pixel width that only shrinks at the max-width: 600px breakpoint,
+     so this catches anything still a few px wider than the viewport instead
+     of creating a horizontal scrollbar on the whole page. */
+  overflow-x: hidden;
   font-family: var(--font-body);
   direction: rtl;
   color: var(--color-ink);
@@ -656,9 +662,35 @@ button:focus-visible { outline: 3px solid var(--color-ink); outline-offset: 2px;
   border: 2px solid rgba(236, 240, 241, 0.3);
   border-radius: var(--radius-md);
 }
-.video-card { width: 120px; height: 180px; cursor: grab; border: 2px solid var(--color-ink); border-radius: var(--radius-sm); overflow: hidden; box-shadow: var(--shadow-card-sm); transition: transform var(--dur-fast) var(--ease-standard), box-shadow var(--dur-fast) var(--ease-standard); }
+.video-card { width: 120px; height: 180px; cursor: grab; border: 2px solid var(--color-ink); border-radius: var(--radius-sm); position: relative; overflow: hidden; box-shadow: var(--shadow-card-sm); transition: transform var(--dur-fast) var(--ease-standard), box-shadow var(--dur-fast) var(--ease-standard); }
 .video-card:hover { transform: translate(-1px, -1px); box-shadow: var(--shadow-card); }
+/* Click-to-place: a selected card (in the tray or already on the board) gets
+   the same bright accent ring as the jigsaw's selected piece, so it's clear
+   which card the next slot-click will move — the alternative to drag-and-drop
+   that touch devices actually need. */
+.video-card.selected { outline: 3px solid var(--color-accent); z-index: 3; }
 .video-card-face { width: 100%; height: 100%; background-size: cover; background-position: center; display: flex; align-items: center; justify-content: center; font-size: 24px; background-color: #333; color: #fff; }
+/* Watching the video is a separate action from picking the card up for
+   placement, so it gets its own small button rather than sharing the card's
+   main click. */
+.video-card-preview {
+  position: absolute;
+  bottom: 6px;
+  left: 6px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(26, 37, 47, 0.75);
+  color: var(--color-ink);
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-standard);
+}
+.video-card-preview:hover { background: var(--color-accent); color: var(--color-paper); }
 /* Solved: the QR must read as one clean image — no gutters between the pieces,
    no dashed slot borders painting seams through it. The green "frame" the
    source doc asks for goes around the whole grid, not around each cell. */
@@ -760,3 +792,37 @@ button:focus-visible { outline: 3px solid var(--color-ink); outline-offset: 2px;
   animation: fadeSlideUp var(--dur-slow) var(--ease-standard) 200ms both;
 }
 .final-finish-button[hidden] { display: none; }
+
+/* ===== Mobile ===== */
+@media (max-width: 600px) {
+  /* Per-character panelLeft values (17-30vw) were tuned against the desktop
+     framing of each character photo; combined with the panel's up-to-380px
+     width they can push past a ~375px-wide phone screen. Reset every
+     character to one safe, narrow-screen position instead of tuning each
+     one again for a completely different photo crop (object-fit: cover
+     crops each photo differently once the viewport is this narrow anyway). */
+  .speech-panel { left: 4vw !important; width: auto !important; max-width: 92vw !important; padding: 20px; }
+  .speech-bubble { font-size: 17px; padding: 16px; }
+
+  /* Crossword: 12 cols x 36px = 432px doesn't fit a 375px viewport. Shrink
+     cells and keep the JS's inline gridTemplateColumns (also 36px) in sync
+     via !important, since inline styles otherwise win over any class rule. */
+  .crossword-grid { grid-template-columns: repeat(12, 26px) !important; }
+  .crossword-cell { width: 26px; height: 26px; }
+  .crossword-input { font-size: 14px; }
+  .crossword-clue-number { font-size: 9px; }
+  .crossword-wrapper { padding: 12px; gap: 14px; overflow-x: auto; }
+  .crossword-clue-text, .crossword-clue-image { max-width: 80vw; }
+
+  /* Video grid: 3 x 120px = 360px plus padding/border overflows a 375px
+     viewport. background-size/-position on the flipped QR sprite are
+     percentage-based, so shrinking the cells doesn't break the reassembled
+     picture. */
+  .video-grid { grid-template-columns: repeat(3, 92px) !important; padding: 10px; }
+  .video-slot { width: 92px; height: 138px; }
+  .video-card { width: 92px; height: 138px; }
+  .video-card-preview { width: 26px; height: 26px; font-size: 11px; }
+  .video-tray { width: 100%; padding: 10px; gap: 8px; }
+
+  .map-open-button, .map-close-button { bottom: 10px; left: 10px; }
+}
