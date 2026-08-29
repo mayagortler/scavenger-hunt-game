@@ -335,6 +335,16 @@ button:focus-visible { outline: 3px solid var(--color-ink); outline-offset: 2px;
   filter: drop-shadow(3px 3px 0 rgba(0, 0, 0, 0.45));
 }
 
+/* Hidden easter egg: orca markers floating over open water, unrelated to the
+   puzzle chain — just a fun thing to notice while panning the map. A little
+   hover "bob" makes them read as playful/alive rather than a broken image. */
+.orca-easter-egg-icon {
+  cursor: pointer;
+  filter: drop-shadow(2px 2px 0 rgba(0, 0, 0, 0.4));
+  transition: transform var(--dur-fast) var(--ease-standard);
+}
+.orca-easter-egg-icon:hover { transform: scale(1.15) rotate(-4deg); }
+
 /* Map search box: type a place name and jump there (fitBounds only — never
    reveals a station, same as manually panning/zooming there). A free-text
    query can be ambiguous, so more than one match shows a picklist instead of

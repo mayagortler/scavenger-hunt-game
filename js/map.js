@@ -128,6 +128,42 @@ function addSearchControl(map) {
   control.addTo(map);
 }
 
+// Hidden easter egg: a handful of "orca whale" markers scattered over open
+// water (Mediterranean coast, confirmed offshore of the actual stations —
+// nowhere near land) for the group to stumble on while panning/zooming the
+// map. Unlike STATIONS these aren't part of the puzzle chain at all — no
+// distance gating, no solved state, always on the map from the start.
+export const ORCA_EASTER_EGGS = [
+  { id: 'orca1', lat: 32.1372, lng: 34.7154 }, // offshore of station1 (Herzliya)
+  { id: 'orca2', lat: 32.1175, lng: 34.6811 }, // offshore of Tel Aviv
+  { id: 'orca3', lat: 32.373, lng: 34.7044 }, // offshore of Netanya/Hadera
+  { id: 'orca4', lat: 31.8076, lng: 34.4339 }, // offshore of station4 (Ashdod)
+];
+
+function createOrcaIcon() {
+  return L.icon({
+    iconUrl: 'assets/images/easter-egg-orca.jpg',
+    iconSize: [56, 38],
+    iconAnchor: [28, 19],
+    className: 'orca-easter-egg-icon',
+  });
+}
+
+function addOrcaEasterEggs(map) {
+  const audio = new Audio('assets/audio/easter-egg-orca.m4a');
+  for (const orca of ORCA_EASTER_EGGS) {
+    L.marker([orca.lat, orca.lng], { icon: createOrcaIcon(), title: '🐳' })
+      .addTo(map)
+      .on('click', () => {
+        // Restart from the top on every click, not just the first — a repeat
+        // click should replay the clip, not silently do nothing because it's
+        // still "playing" from a previous click.
+        audio.currentTime = 0;
+        audio.play().catch(() => {});
+      });
+  }
+}
+
 // A map-pin/pushpin icon (not a plain dot) so a station reads clearly as a
 // findable location on the map, in the same ink+stamp-red visual language as
 // the rest of the game.
@@ -164,6 +200,7 @@ export function initMap(container, {
   }).addTo(map);
 
   addSearchControl(map);
+  addOrcaEasterEggs(map);
 
   const markers = new Map();
 
