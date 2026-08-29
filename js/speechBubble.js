@@ -1,7 +1,7 @@
 // js/speechBubble.js
 import { visibleText, isTypingComplete } from './typewriter.js';
 
-export function renderSpeechBubble(container, { characterImage, characterName, text, buttonLabel, onAdvance, panelLeft }) {
+export function renderSpeechBubble(container, { characterImage, characterName, text, buttonLabel, onAdvance, panelLeft, panelWidth }) {
   container.innerHTML = '';
 
   const wrapper = document.createElement('div');
@@ -18,6 +18,10 @@ export function renderSpeechBubble(container, { characterImage, characterName, t
   // right the bubble sits (to end up next to them, not just off the edge) is
   // tuned per photo by the caller instead of one fixed value for everyone.
   if (panelLeft) panel.style.left = panelLeft;
+  // Same idea for width: most lines fit the default panel fine, but a
+  // particularly long line reads better spread out wider instead of wrapping
+  // to many narrow lines — tuned per call site, not globally.
+  if (panelWidth) panel.style.width = panelWidth;
 
   const bubble = document.createElement('div');
   bubble.className = 'speech-bubble';

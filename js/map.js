@@ -129,22 +129,27 @@ function addSearchControl(map) {
 }
 
 // Hidden easter egg: a handful of "orca whale" markers scattered over open
-// water (Mediterranean coast, confirmed offshore of the actual stations —
-// nowhere near land) for the group to stumble on while panning/zooming the
-// map. Unlike STATIONS these aren't part of the puzzle chain at all — no
-// distance gating, no solved state, always on the map from the start.
+// water along the whole Mediterranean coast (confirmed offshore — nowhere
+// near land) for the group to stumble on while panning/zooming the map.
+// Kept close to shore (roughly 1-3km out, not far out to open sea) so they
+// show up while just looking at the coastline near a station, without
+// needing to zoom/pan all the way out to open water. Unlike STATIONS these
+// aren't part of the puzzle chain at all — no distance gating, no solved
+// state, always on the map from the start.
 export const ORCA_EASTER_EGGS = [
-  { id: 'orca1', lat: 32.1372, lng: 34.7154 }, // offshore of station1 (Herzliya)
-  { id: 'orca2', lat: 32.1175, lng: 34.6811 }, // offshore of Tel Aviv
-  { id: 'orca3', lat: 32.373, lng: 34.7044 }, // offshore of Netanya/Hadera
-  { id: 'orca4', lat: 31.8076, lng: 34.4339 }, // offshore of station4 (Ashdod)
+  { id: 'orca1', lat: 32.3192, lng: 34.822 }, // offshore of Netanya
+  { id: 'orca2', lat: 32.17, lng: 34.78 }, // offshore of Herzliya, near station1
+  { id: 'orca3', lat: 32.0501, lng: 34.7201 }, // offshore of Tel Aviv port
+  { id: 'orca4', lat: 31.9503, lng: 34.65 }, // offshore of Rishon LeZion/Palmachim
+  { id: 'orca5', lat: 31.8001, lng: 34.5803 }, // offshore of station4 (Ashdod)
+  { id: 'orca6', lat: 31.6801, lng: 34.4801 }, // offshore of Ashkelon
 ];
 
 function createOrcaIcon() {
   return L.icon({
-    iconUrl: 'assets/images/easter-egg-orca.jpg',
-    iconSize: [56, 38],
-    iconAnchor: [28, 19],
+    iconUrl: 'assets/images/easter-egg-orca.png',
+    iconSize: [64, 47],
+    iconAnchor: [32, 24],
     className: 'orca-easter-egg-icon',
   });
 }

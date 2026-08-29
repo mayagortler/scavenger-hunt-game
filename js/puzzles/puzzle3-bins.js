@@ -43,6 +43,7 @@ export function initPuzzle3(container, { onSolved }) {
     characterImage: 'assets/images/char-uzi-hadrozi.jpeg',
     characterName: 'עוזי הדרוזי',
     panelLeft: '28vw',
+    panelWidth: '460px',
     text: INTRO_TEXT,
     buttonLabel: '←',
     onAdvance: () => {
